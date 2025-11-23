@@ -1,0 +1,64 @@
+package handlers
+
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/mot0x0/gopi/internal/delivery/http/dto"
+	"github.com/mot0x0/gopi/internal/delivery/http/response"
+	"github.com/mot0x0/gopi/internal/domain/usecases"
+)
+
+type UserHandler struct {
+	userUC usecases.UserUseCase
+}
+
+func NewUserHandler(userUC usecases.UserUseCase) *UserHandler {
+	return &UserHandler{userUC: userUC}
+}
+
+func (h *UserHandler) Register(c *gin.Context) {
+	var req dto.CreateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request payload", err)
+		return
+	}
+
+	newUser, err := h.userUC.Register(c.Request.Context(), req.Email, req.Password)
+	if err != nil {
+		response.BadRequest(c, "Registration failed", err)
+		return
+	}
+
+	userResponse := dto.UserResponse{
+		ID:        newUser.ID,
+		Email:     newUser.Email,
+		Status:    newUser.Status.String(),
+		CreatedAt: newUser.CreatedAt,
+	}
+
+	response.Created(c, "User created successfully", userResponse)
+}
+
+// func (h *UserHandler) Login(c *gin.Context) {
+//     var req dto.LoginRequest
+//     if err := c.ShouldBindJSON(&req); err != nil {
+//         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+//         return
+//     }
+
+//     user, accessToken, refreshToken, err := h.userUC.Login(c.Request.Context(), req.Email, req.Password)
+//     if err != nil {
+//         c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+//         return
+//     }
+
+//     c.JSON(http.StatusOK, dto.LoginResponse{
+//         AccessToken:  accessToken,
+//         RefreshToken: refreshToken,
+//         User: dto.UserResponse{
+//             ID:        user.ID,
+//             Email:     user.Email,
+//             Status:    user.Status.String(),
+//             CreatedAt: user.CreatedAt,
+//         },
+//     })
+// }

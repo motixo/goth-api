@@ -5,13 +5,12 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/mtextr/gopi/internal/adapter/postgres"
-	"github.com/mtextr/gopi/internal/delivery/gin"
-	"github.com/mtextr/gopi/internal/usecase/user"
+	"github.com/mot0x0/gopi/internal/adapter/postgres"
+	"github.com/mot0x0/gopi/internal/delivery/http"
+	"github.com/mot0x0/gopi/internal/usecase/user"
 )
 
 func main() {
-
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using default environment variables")
 	}
@@ -30,9 +29,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userRepo := postgres.NewUserRepo(db.DB)
+	userRepo := postgres.NewUserRepository(db.DB)
 	usersUC := user.NewUserUsecase(userRepo, jwtSecret)
-	server := gin.NewServer(usersUC)
 
-	server.Run(serverPort)
+	server := http.NewServer(usersUC)
+
+	log.Printf("Server starting on port %s", serverPort)
+	if err := server.Run(serverPort); err != nil {
+		log.Fatal("Failed to start server: ", err)
+	}
 }
