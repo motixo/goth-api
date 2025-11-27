@@ -21,7 +21,7 @@ type RefreshOutput struct {
 	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
 }
 
-func (a *AuthUsecase) Refresh(ctx context.Context, input RefreshInput) (RefreshOutput, error) {
+func (a *AuthUseCase) Refresh(ctx context.Context, input RefreshInput) (RefreshOutput, error) {
 	secret := config.Get().JWTSecret
 
 	claims, err := valueobject.ParseAndValidate(input.RefreshToken, secret)

@@ -6,7 +6,13 @@ import (
 	"github.com/mot0x0/gopi/internal/domain/entity"
 )
 
-type UserUseCase interface {
+type UseCase interface {
 	Register(ctx context.Context, input RegisterInput) (RegisterOutput, error)
 	GetProfile(ctx context.Context, userID string) (*entity.User, error)
+}
+
+type Repository interface {
+	Create(ctx context.Context, u *entity.User) error
+	FindByID(ctx context.Context, id string) (*entity.User, error)
+	FindByEmail(ctx context.Context, email string) (*entity.User, error)
 }

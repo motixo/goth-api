@@ -1,15 +1,11 @@
 package session
 
-import (
-	"github.com/mot0x0/gopi/internal/domain/repository"
-)
-
-type SessionUsecase struct {
-	sessionRepo repository.SessionRepository
+type SessionUseCase struct {
+	sessionRepo Repository
 }
 
-func NewSessionUsecase(r repository.SessionRepository) SessionUseCase {
-	return &SessionUsecase{
+func NewSessionUsecase(r Repository) UseCase {
+	return &SessionUseCase{
 		sessionRepo: r,
 	}
 }

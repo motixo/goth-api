@@ -1,15 +1,11 @@
 package user
 
-import (
-	"github.com/mot0x0/gopi/internal/domain/repository"
-)
-
-type UserUsecase struct {
-	userRepo repository.UserRepository
+type UserUseCase struct {
+	userRepo Repository
 }
 
-func NewUserUsecase(r repository.UserRepository) UserUseCase {
-	return &UserUsecase{
+func NewUserUsecase(r Repository) UseCase {
+	return &UserUseCase{
 		userRepo: r,
 	}
 }

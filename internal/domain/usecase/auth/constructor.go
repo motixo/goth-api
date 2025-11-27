@@ -1,17 +1,17 @@
 package auth
 
 import (
-	"github.com/mot0x0/gopi/internal/domain/repository"
 	"github.com/mot0x0/gopi/internal/domain/usecase/jti"
+	"github.com/mot0x0/gopi/internal/domain/usecase/user"
 )
 
-type AuthUsecase struct {
-	userRepo repository.UserRepository
-	jtiUC    jti.JTIUseCase
+type AuthUseCase struct {
+	userRepo user.Repository
+	jtiUC    jti.UseCase
 }
 
-func NewAuthUsecase(jtiUC jti.JTIUseCase, userRepo repository.UserRepository) AuthUseCase {
-	return &AuthUsecase{
+func NewAuthUsecase(jtiUC jti.UseCase, userRepo user.Repository) UseCase {
+	return &AuthUseCase{
 		userRepo: userRepo,
 		jtiUC:    jtiUC,
 	}

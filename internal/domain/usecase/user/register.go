@@ -18,7 +18,7 @@ type RegisterOutput struct {
 	User UserResponse `json:"user"`
 }
 
-func (u *UserUsecase) Register(ctx context.Context, input RegisterInput) (RegisterOutput, error) {
+func (u *UserUseCase) Register(ctx context.Context, input RegisterInput) (RegisterOutput, error) {
 	hashedPassword, err := valueobject.NewPassword(input.Password)
 	if err != nil {
 		return RegisterOutput{}, err

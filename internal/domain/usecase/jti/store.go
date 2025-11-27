@@ -11,7 +11,7 @@ type StoreInput struct {
 	Exp    time.Duration
 }
 
-func (j *JTIUsecase) StoreJTI(ctx context.Context, input StoreInput) error {
+func (j *JTIUseCase) StoreJTI(ctx context.Context, input StoreInput) error {
 	ttlSeconds := int(input.Exp.Seconds())
 	return j.jtiRepo.SaveJTI(ctx, input.UserID, input.JTI, ttlSeconds)
 }

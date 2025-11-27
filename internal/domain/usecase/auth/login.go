@@ -24,7 +24,7 @@ type LoginOutput struct {
 	User                  user.UserResponse `json:"user"`
 }
 
-func (a *AuthUsecase) Login(ctx context.Context, input LoginInput) (LoginOutput, error) {
+func (a *AuthUseCase) Login(ctx context.Context, input LoginInput) (LoginOutput, error) {
 	u, err := a.userRepo.FindByEmail(ctx, input.Email)
 	if err != nil {
 		return LoginOutput{}, err

@@ -1,13 +1,11 @@
 package jti
 
-import "github.com/mot0x0/gopi/internal/domain/repository"
-
-type JTIUsecase struct {
-	jtiRepo repository.JTIRepository
+type JTIUseCase struct {
+	jtiRepo Repository
 }
 
-func NewJTIUsecase(r repository.JTIRepository) JTIUseCase {
-	return &JTIUsecase{
+func NewJTIUsecase(r Repository) UseCase {
+	return &JTIUseCase{
 		jtiRepo: r,
 	}
 }

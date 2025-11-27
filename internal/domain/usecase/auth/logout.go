@@ -13,7 +13,7 @@ type LogoutInput struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (a *AuthUsecase) Logout(ctx context.Context, input LogoutInput) error {
+func (a *AuthUseCase) Logout(ctx context.Context, input LogoutInput) error {
 	secret := config.Get().JWTSecret
 
 	accessClaims, err := valueobject.ParseAndValidate(input.AccessToken, secret)

@@ -15,7 +15,7 @@ type Server struct {
 	userHandler *handlers.UserHandler
 }
 
-func NewServer(userUC user.UserUseCase, authUC auth.AuthUseCase) *Server {
+func NewServer(userUC user.UseCase, authUC auth.UseCase) *Server {
 	router := gin.Default()
 
 	// Global middleware
