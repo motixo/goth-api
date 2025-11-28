@@ -2,38 +2,36 @@ package main
 
 import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/mot0x0/gopi/internal/adapter/postgres"
-	"github.com/mot0x0/gopi/internal/adapter/redis"
 	"github.com/mot0x0/gopi/internal/config"
-	"github.com/mot0x0/gopi/internal/delivery/http"
-	"github.com/mot0x0/gopi/internal/domain/usecase/auth"
-	"github.com/mot0x0/gopi/internal/domain/usecase/jti"
-	"github.com/mot0x0/gopi/internal/domain/usecase/user"
 )
 
 func main() {
-
-	cfg := config.Get()
-
-	db, err := postgres.NewDatabase(cfg.DBConnectionString())
+	// Load config first (for error handling before Wire)
+	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to load config: ", err)
 	}
 
-	red := redis.NewRedisClient(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
-
-	userRepo := postgres.NewUserRepository(db.DB)
-	jtiRepo := jti.NewRepository(red.Client())
-
-	jtiUC := jti.NewJTIUsecase(jtiRepo)
-	authUC := auth.NewAuthUsecase(jtiUC, userRepo)
-	usersUC := user.NewUserUsecase(userRepo)
-
-	server := http.NewServer(usersUC, authUC)
-
-	log.Printf("Server starting on port %s", cfg.ServerPort)
-	if err := server.Run(cfg.ServerPort); err != nil {
-		log.Fatal("Failed to start server: ", err)
+	// Wire-generated function handles all DI
+	server, err := InitializeApp()
+	if err != nil {
+		log.Fatal("Failed to initialize app: ", err)
 	}
+
+	// Graceful shutdown
+	go func() {
+		log.Printf("Server starting on port %s", cfg.ServerPort)
+		if err := server.Run(cfg.ServerPort); err != nil {
+			log.Fatal("Server failed: ", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down...")
 }

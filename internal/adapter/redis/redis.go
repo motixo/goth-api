@@ -1,23 +1,40 @@
 package redis
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/mot0x0/gopi/internal/config"
 	"github.com/redis/go-redis/v9"
 )
+
+type RedisClientInterface interface {
+	Ping(ctx context.Context) error
+	Client() *redis.Client
+}
 
 type RedisClient struct {
 	client *redis.Client
 }
 
-func NewRedisClient(addr string, password string, db int) *RedisClient {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
-	})
-
-	return &RedisClient{client: rdb}
-}
-
 func (r *RedisClient) Client() *redis.Client {
 	return r.client
+}
+
+func (r *RedisClient) Ping(ctx context.Context) error {
+	return r.client.Ping(ctx).Err()
+}
+
+func NewClient(cfg *config.Config) (RedisClientInterface, error) {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     cfg.RedisAddr,
+		Password: cfg.RedisPassword,
+		DB:       cfg.RedisDB,
+	})
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		return nil, fmt.Errorf("failed to connect to redis: %w", err)
+	}
+
+	return &RedisClient{client: rdb}, nil
 }

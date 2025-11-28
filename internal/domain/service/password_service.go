@@ -9,6 +9,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/mot0x0/gopi/internal/config"
 	"github.com/mot0x0/gopi/internal/domain/errors"
 	"github.com/mot0x0/gopi/internal/domain/valueobject"
 	"golang.org/x/crypto/argon2"
@@ -28,8 +29,8 @@ type PasswordService struct {
 }
 
 // NewPasswordService creates a service with injected pepper
-func NewPasswordService(pepper string) *PasswordService {
-	return &PasswordService{pepper: pepper}
+func NewPasswordService(cfg *config.Config) *PasswordService {
+	return &PasswordService{pepper: cfg.PasswordPepper}
 }
 
 // Hash creates a Password from plaintext

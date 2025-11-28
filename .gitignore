@@ -1,3 +1,11 @@
+# Go packages
 go.sum
+
+# Environment config file
 .env
+
+# vscode configurations
 .vscode
+
+# Wire generated DI container
+cmd/app/wire_gen.go

@@ -4,7 +4,7 @@ type JTIUseCase struct {
 	jtiRepo Repository
 }
 
-func NewJTIUsecase(r Repository) UseCase {
+func NewUsecase(r Repository) UseCase {
 	return &JTIUseCase{
 		jtiRepo: r,
 	}

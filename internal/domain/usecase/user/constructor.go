@@ -1,15 +1,11 @@
 package user
 
-import "github.com/mot0x0/gopi/internal/domain/service"
-
 type UserUseCase struct {
-	userRepo        Repository
-	passwordService *service.PasswordService
+	userRepo Repository
 }
 
-func NewUserUsecase(r Repository, passwordSvc *service.PasswordService) UseCase {
+func NewUsecase(r Repository) UseCase {
 	return &UserUseCase{
-		userRepo:        r,
-		passwordService: passwordSvc,
+		userRepo: r,
 	}
 }

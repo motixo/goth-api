@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/mot0x0/gopi/internal/config"
 	"github.com/mot0x0/gopi/internal/delivery/http/handlers"
 	"github.com/mot0x0/gopi/internal/delivery/http/middleware"
 	"github.com/mot0x0/gopi/internal/delivery/http/routes"
@@ -16,11 +17,11 @@ type Server struct {
 	authMiddleware *middleware.AuthMiddleware
 }
 
-func NewServer(userUC user.UseCase, authUC auth.UseCase, jwtSecret string) *Server {
+func NewServer(userUC user.UseCase, authUC auth.UseCase, cfg *config.Config) *Server {
 	router := gin.Default()
 
 	// Global middleware
-	authMiddleware := middleware.NewAuthMiddleware(jwtSecret)
+	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
 	router.Use(middleware.Recovery())
 
 	authHandler := handlers.NewAuthHandler(authUC)

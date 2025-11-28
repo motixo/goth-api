@@ -5,14 +5,11 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/mot0x0/gopi/internal/config"
 )
 
-type Database struct {
-	DB *sqlx.DB
-}
-
-func NewDatabase(dsn string) (*Database, error) {
-	db, err := sqlx.Connect("postgres", dsn)
+func NewDatabase(cfg *config.Config) (*sqlx.DB, error) {
+	db, err := sqlx.Connect("postgres", cfg.DSN())
 	if err != nil {
 		return nil, err
 	}
@@ -33,5 +30,5 @@ func NewDatabase(dsn string) (*Database, error) {
 
 	log.Println("Database connected and users table ensured")
 
-	return &Database{DB: db}, nil
+	return sqlx.Connect("postgres", cfg.DSN())
 }
