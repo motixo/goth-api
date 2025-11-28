@@ -11,4 +11,4 @@ go.sum
 cmd/app/wire_gen.go
 
 # Build file
-gopi
+build
