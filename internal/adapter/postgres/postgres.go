@@ -1,16 +1,16 @@
 package postgres
 
 import (
-	"log"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/mot0x0/goth-api/internal/config"
+	"github.com/mot0x0/goth-api/internal/domain/service"
 )
 
-func NewDatabase(cfg *config.Config) (*sqlx.DB, error) {
+func NewDatabase(cfg *config.Config, logger service.Logger) (*sqlx.DB, error) {
 	db, err := sqlx.Connect("postgres", cfg.DSN())
 	if err != nil {
+		logger.Error("failed to connect to database", "error", err)
 		return nil, err
 	}
 
@@ -25,10 +25,11 @@ func NewDatabase(cfg *config.Config) (*sqlx.DB, error) {
 	);`
 
 	if _, err := db.Exec(schema); err != nil {
+		logger.Error("failed to ensure users table", "error", err)
 		return nil, err
 	}
 
-	log.Println("Database connected and users table ensured")
+	logger.Info("Database connected and users table ensured")
 
 	return sqlx.Connect("postgres", cfg.DSN())
 }

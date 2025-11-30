@@ -2,6 +2,7 @@ package wire
 
 import (
 	"github.com/google/wire"
+	"github.com/mot0x0/goth-api/internal/adapter/log"
 	"github.com/mot0x0/goth-api/internal/adapter/postgres"
 	postgresUser "github.com/mot0x0/goth-api/internal/adapter/postgres/user"
 	redisSession "github.com/mot0x0/goth-api/internal/adapter/redis/session"
@@ -51,6 +52,11 @@ var HTTPSet = wire.NewSet(
 	http.NewServer,
 )
 
+var LoggerSet = wire.NewSet(
+	log.NewZapLogger,
+	wire.Bind(new(service.Logger), new(*log.ZapLogger)),
+)
+
 // ProviderSet bundles everything
 var ProviderSet = wire.NewSet(
 	InfrastructureSet,
@@ -58,6 +64,7 @@ var ProviderSet = wire.NewSet(
 	ServiceSet,
 	UseCaseSet,
 	HTTPSet,
+	LoggerSet,
 )
 
 func ProvideRedisClient(cfg *config.Config) *redis.Client {

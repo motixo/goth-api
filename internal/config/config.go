@@ -1,10 +1,10 @@
-// internal/config/config.go
 package config
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/redis/go-redis/v9"
@@ -25,26 +25,41 @@ type Config struct {
 	RedisPassword  string        `envconfig:"REDIS_PASSWORD"`
 	RedisDB        int           `envconfig:"REDIS_DB" default:"0"`
 	JWTExpiration  time.Duration `envconfig:"JWT_EXPIRATION" default:"24h"`
+	GinMode        string        `envconfig:"GIN_MODE" default:"debug"`
 }
 
-// Load reads configuration from environment variables
+// Load reads configuration from environment variables and .env file
 func Load() (*Config, error) {
-	var cfg Config
-
-	// Load .env file if it exists (optional in production)
+	// Load .env if exists
 	_ = godotenv.Load()
 
+	var cfg Config
 	if err := envconfig.Process("", &cfg); err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Add port prefix
+	// Validate ENV
+	if err := cfg.validate(); err != nil {
+		return nil, err
+	}
+
+	// Prefix server port
 	cfg.ServerPort = ":" + cfg.ServerPort
 
-	return &cfg, cfg.validate()
+	// Set gin mode automatically
+	switch cfg.GinMode {
+	case "release":
+		gin.SetMode(gin.ReleaseMode)
+	case "debug":
+		gin.SetMode(gin.DebugMode)
+	default:
+		return nil, fmt.Errorf("invalid GIN_MODE: must be 'debug' or 'release'")
+	}
+
+	return &cfg, nil
 }
 
-// Validate ensures required fields are set
+// validate ensures required fields are set
 func (c *Config) validate() error {
 	if c.Env != "development" && c.Env != "production" {
 		return fmt.Errorf("invalid ENV: must be 'development' or 'production'")
@@ -65,4 +80,9 @@ func (c *Config) RedisOptions() *redis.Options {
 		Password: c.RedisPassword,
 		DB:       c.RedisDB,
 	}
+}
+
+// IsProduction helper
+func (c *Config) IsProduction() bool {
+	return c.Env == "production"
 }

@@ -26,21 +26,26 @@ type LoginOutput struct {
 }
 
 func (a *AuthUseCase) Login(ctx context.Context, input LoginInput) (LoginOutput, error) {
+	a.logger.Info("login attempt", "email", input.Email, "ip", input.IP, "device", input.Device)
 	u, err := a.userRepo.FindByEmail(ctx, input.Email)
 	if err != nil {
+		a.logger.Error("login failed", "error", err)
 		return LoginOutput{}, err
 	}
 	if u == nil {
+		a.logger.Warn("login failed: user not found", "email", input.Email)
 		return LoginOutput{}, errors.ErrNotFound
 	}
 
 	if !a.passwordService.Verify(ctx, input.Password, valueobject.PasswordFromHash(u.Password)) {
+		a.logger.Warn("login failed: invalid password", "email", input.Email, "ip", input.IP, "device", input.Device)
 		return LoginOutput{}, errors.ErrUnauthorized
 	}
 
 	refreshJTI := a.ulidGen.New()
 	refresh, refreshExp, err := valueobject.NewRefreshToken(u.ID, a.jwtSecret, refreshJTI)
 	if err != nil {
+		a.logger.Error("failed to create refresh token", "userID", u.ID, "error", err)
 		return LoginOutput{}, err
 	}
 
@@ -52,15 +57,18 @@ func (a *AuthUseCase) Login(ctx context.Context, input LoginInput) (LoginOutput,
 		JTIExpiresAt: refreshExp,
 	}
 
-	seseeionID, err := a.sessionUC.CreateSession(ctx, sessionInput)
+	sesseionID, err := a.sessionUC.CreateSession(ctx, sessionInput)
 	if err != nil {
 		return LoginOutput{}, err
 	}
 
-	access, accessExp, err := valueobject.NewAccessToken(u.ID, a.jwtSecret, seseeionID, refreshJTI)
+	access, accessExp, err := valueobject.NewAccessToken(u.ID, a.jwtSecret, sesseionID, refreshJTI)
 	if err != nil {
+		a.logger.Error("failed to create access token", "userID", u.ID, "error", err)
 		return LoginOutput{}, err
 	}
+
+	a.logger.Info("user logged in successfully", "userID", u.ID, "refreshJTI", refreshJTI, "sessionID", sesseionID)
 
 	return LoginOutput{
 		AccessToken:           access,

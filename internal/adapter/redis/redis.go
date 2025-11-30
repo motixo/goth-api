@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/mot0x0/goth-api/internal/config"
+	"github.com/mot0x0/goth-api/internal/domain/service"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -25,7 +26,7 @@ func (r *RedisClient) Ping(ctx context.Context) error {
 	return r.client.Ping(ctx).Err()
 }
 
-func NewClient(cfg *config.Config) (RedisClientInterface, error) {
+func NewClient(cfg *config.Config, logger service.Logger) (RedisClientInterface, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddr,
 		Password: cfg.RedisPassword,
@@ -33,8 +34,10 @@ func NewClient(cfg *config.Config) (RedisClientInterface, error) {
 	})
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		logger.Error("failed to connect to Redis", "error", err)
 		return nil, fmt.Errorf("failed to connect to redis: %w", err)
 	}
 
+	logger.Info("Redis connected successfully", "addr", cfg.RedisAddr)
 	return &RedisClient{client: rdb}, nil
 }

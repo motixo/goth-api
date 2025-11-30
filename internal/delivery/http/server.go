@@ -6,6 +6,7 @@ import (
 	"github.com/mot0x0/goth-api/internal/delivery/http/handlers"
 	"github.com/mot0x0/goth-api/internal/delivery/http/middleware"
 	"github.com/mot0x0/goth-api/internal/delivery/http/routes"
+	"github.com/mot0x0/goth-api/internal/domain/service"
 	"github.com/mot0x0/goth-api/internal/domain/usecase/auth"
 	"github.com/mot0x0/goth-api/internal/domain/usecase/session"
 	"github.com/mot0x0/goth-api/internal/domain/usecase/user"
@@ -19,16 +20,16 @@ type Server struct {
 	authMiddleware *middleware.AuthMiddleware
 }
 
-func NewServer(userUC user.UseCase, authUC auth.UseCase, sessionUC session.UseCase, cfg *config.Config) *Server {
-	router := gin.Default()
+func NewServer(userUC user.UseCase, authUC auth.UseCase, sessionUC session.UseCase, logger service.Logger, cfg *config.Config) *Server {
+	router := gin.New()
 
 	// Global middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, sessionUC)
-	router.Use(middleware.Recovery())
+	router.Use(middleware.Recovery(logger))
 
-	authHandler := handlers.NewAuthHandler(authUC)
-	sessionHandler := handlers.NewSessionHandler(sessionUC)
-	userHandler := handlers.NewUserHandler(userUC)
+	authHandler := handlers.NewAuthHandler(authUC, logger)
+	sessionHandler := handlers.NewSessionHandler(sessionUC, logger)
+	userHandler := handlers.NewUserHandler(userUC, logger)
 
 	server := &Server{
 		engine:         router,

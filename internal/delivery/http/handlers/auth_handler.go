@@ -2,21 +2,29 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/mot0x0/goth-api/internal/delivery/http/helper"
 	"github.com/mot0x0/goth-api/internal/delivery/http/response"
+	"github.com/mot0x0/goth-api/internal/domain/service"
 	"github.com/mot0x0/goth-api/internal/domain/usecase/auth"
 )
 
 type AuthHandler struct {
 	usecase auth.UseCase
+	logger  service.Logger
 }
 
-func NewAuthHandler(usecase auth.UseCase) *AuthHandler {
-	return &AuthHandler{usecase: usecase}
+func NewAuthHandler(usecase auth.UseCase, logger service.Logger) *AuthHandler {
+	return &AuthHandler{
+		usecase: usecase,
+		logger:  logger,
+	}
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
+	helper.LogRequest(h.logger, c)
 	var input auth.LoginInput
 	if err := c.ShouldBindJSON(&input); err != nil {
+		h.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP(), "device", c.GetHeader("User-Agent"))
 		response.BadRequest(c, "Invalid request payload")
 		return
 	}
@@ -34,8 +42,10 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
+	helper.LogRequest(h.logger, c)
 	var input auth.RegisterInput
 	if err := c.ShouldBindJSON(&input); err != nil {
+		h.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP(), "device", c.GetHeader("User-Agent"))
 		response.BadRequest(c, "Invalid request payload")
 		return
 	}
@@ -50,18 +60,20 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 func (h *AuthHandler) Refresh(c *gin.Context) {
+	helper.LogRequest(h.logger, c)
 	var input auth.RefreshInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		response.BadRequest(c, "token is required")
+		h.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP(), "device", c.GetHeader("User-Agent"))
+		response.BadRequest(c, "Invalid request payload")
 		return
 	}
 
 	input.IP = c.ClientIP()
 	input.Device = c.GetHeader("User-Agent")
-
 	output, err := h.usecase.Refresh(c.Request.Context(), input)
 	if err != nil {
-		response.Unauthorized(c, "invalid refresh token")
+		h.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP(), "device", c.GetHeader("User-Agent"))
+		response.Unauthorized(c, "Invalid request payload")
 		return
 	}
 
@@ -69,19 +81,20 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
-	sessionVal, exists := c.Get("session_id")
-	if !exists {
-		response.BadRequest(c, "missing session identifier")
+	helper.LogRequest(h.logger, c)
+	userID, err := helper.GetStringFromContext(c, "user_id")
+	if err != nil {
+		response.Internal(c)
 		return
 	}
 
-	session, ok := sessionVal.(string)
-	if !ok || session == "" {
-		response.BadRequest(c, "invalid session identifier")
+	sessionID, err := helper.GetStringFromContext(c, "session_id")
+	if err != nil {
+		response.Internal(c)
 		return
 	}
 
-	if err := h.usecase.Logout(c.Request.Context(), session); err != nil {
+	if err := h.usecase.Logout(c.Request.Context(), sessionID, userID); err != nil {
 		response.Unauthorized(c, err.Error())
 		return
 	}
