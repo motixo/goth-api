@@ -33,7 +33,9 @@ var rotateJtiLua = redis.NewScript(`
 		return redis.error_reply("invalid_or_expired_jti")
 	end
 
-	redis.call("DEL", oldJTIKey)
+	if redis.call("DEL", oldJTIKey) == 0 then
+		return redis.error_reply("jti_already_used")
+	end
 
 	redis.call("SET", newJTIKey, sessionKey, "EX", jtiTTL)
 

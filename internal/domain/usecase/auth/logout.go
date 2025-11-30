@@ -6,11 +6,19 @@ import (
 	"github.com/mot0x0/goth-api/internal/domain/usecase/session"
 )
 
-func (a *AuthUseCase) Logout(ctx context.Context, sessionID string) error {
+func (a *AuthUseCase) Logout(ctx context.Context, sessionID, userID string) error {
+
+	a.logger.Info("user logout requested", "userID", userID)
 
 	input := session.DeleteSessionsInput{
 		TargetSessions: []string{sessionID},
+		UserID:         userID,
 	}
 
-	return a.sessionUC.DeleteSessions(ctx, input)
+	err := a.sessionUC.DeleteSessions(ctx, input)
+	if err != nil {
+		return err
+	}
+	a.logger.Info("user logged out", "userID", userID)
+	return nil
 }

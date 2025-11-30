@@ -16,7 +16,7 @@ type CreateInput struct {
 }
 
 func (s *SessionUseCase) CreateSession(ctx context.Context, input CreateInput) (string, error) {
-
+	s.logger.Debug("creating session", "userID", input.UserID, "device", input.Device, "ip", input.IP, "currentJTI", input.CurrentJTI)
 	now := time.Now().UTC()
 	session := &entity.Session{
 		ID:                s.ulidGen.New(),
@@ -32,8 +32,11 @@ func (s *SessionUseCase) CreateSession(ctx context.Context, input CreateInput) (
 	}
 	err := s.sessionRepo.Create(ctx, session)
 	if err != nil {
+		s.logger.Error("failed to create session", "userID", input.UserID, "currentJTI", input.CurrentJTI, "error", err)
 		return "", err
 	}
+
+	s.logger.Info("session created successfully", "userID", input.UserID, "sessionID", session.ID, "currentJTI", input.CurrentJTI)
 	return session.ID, nil
 
 }

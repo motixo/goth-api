@@ -4,19 +4,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mot0x0/goth-api/internal/delivery/http/helper"
 	"github.com/mot0x0/goth-api/internal/delivery/http/response"
+	"github.com/mot0x0/goth-api/internal/domain/service"
 	"github.com/mot0x0/goth-api/internal/domain/usecase/session"
 )
 
 type SessionHandler struct {
 	usecase session.UseCase
+	logger  service.Logger
 }
 
-func NewSessionHandler(usecase session.UseCase) *SessionHandler {
-	return &SessionHandler{usecase: usecase}
+func NewSessionHandler(usecase session.UseCase, logger service.Logger) *SessionHandler {
+	return &SessionHandler{
+		usecase: usecase,
+		logger:  logger,
+	}
 }
 
 func (s *SessionHandler) GetAllUserSessions(c *gin.Context) {
-
+	helper.LogRequest(s.logger, c)
 	userID, err := helper.GetStringFromContext(c, "user_id")
 	if err != nil {
 		response.Internal(c)
@@ -39,8 +44,10 @@ func (s *SessionHandler) GetAllUserSessions(c *gin.Context) {
 }
 
 func (s *SessionHandler) DeleteSessions(c *gin.Context) {
+	helper.LogRequest(s.logger, c)
 	var input session.DeleteSessionsInput
 	if err := c.ShouldBindJSON(&input); err != nil {
+		s.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP(), "device", c.GetHeader("User-Agent"))
 		response.BadRequest(c, "Invalid request payload")
 		return
 	}

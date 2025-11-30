@@ -12,6 +12,7 @@ type AuthUseCase struct {
 	sessionUC       session.UseCase
 	ulidGen         *service.ULIDGenerator
 	passwordService *service.PasswordService
+	logger          service.Logger
 	jwtSecret       string
 }
 
@@ -19,6 +20,7 @@ func NewUsecase(
 	userRepo user.Repository,
 	sessionUC session.UseCase,
 	passwordSvc *service.PasswordService,
+	logger service.Logger,
 	ulidGen *service.ULIDGenerator,
 	cfg *config.Config,
 ) UseCase {
@@ -26,6 +28,7 @@ func NewUsecase(
 		userRepo:        userRepo,
 		sessionUC:       sessionUC,
 		passwordService: passwordSvc,
+		logger:          logger,
 		ulidGen:         ulidGen,
 		jwtSecret:       cfg.JWTSecret,
 	}

@@ -6,8 +6,10 @@ import (
 )
 
 func (s *SessionUseCase) GetSessionsByUser(ctx context.Context, userID, sessionID string) ([]*SessionResponse, error) {
+	s.logger.Debug("retrieving user sessions", "userID", userID, "currentSessionID", sessionID)
 	sessions, err := s.sessionRepo.ListByUser(ctx, userID)
 	if err != nil {
+		s.logger.Error("failed to list sessions by user", "userID", userID, "error", err)
 		return []*SessionResponse{}, err
 	}
 
@@ -29,5 +31,6 @@ func (s *SessionUseCase) GetSessionsByUser(ctx context.Context, userID, sessionI
 		return response[i].UpdatedAt.After(response[j].UpdatedAt)
 	})
 
+	s.logger.Info("user sessions retrieved", "userID", userID, "sessionCount", len(sessions))
 	return response, nil
 }

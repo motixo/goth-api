@@ -12,18 +12,18 @@ import (
 func main() {
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal("Failed to load config: ", err)
+		panic("failed to load config: " + err.Error())
 	}
 
 	server, err := InitializeApp()
 	if err != nil {
-		log.Fatal("Failed to initialize app: ", err)
+		panic("failed to initialize app: " + err.Error())
 	}
 
 	go func() {
 		log.Printf("Server starting on port %s", cfg.ServerPort)
 		if err := server.Run(cfg.ServerPort); err != nil {
-			log.Fatal("Server failed: ", err)
+			panic("server failed" + err.Error())
 		}
 	}()
 

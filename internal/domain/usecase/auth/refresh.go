@@ -26,16 +26,21 @@ func (a *AuthUseCase) Refresh(ctx context.Context, input RefreshInput) (RefreshO
 
 	claims, err := valueobject.ParseAndValidate(input.RefreshToken, a.jwtSecret)
 	if err != nil {
+		a.logger.Warn("invalid refresh token", "error", err)
 		return RefreshOutput{}, errors.ErrUnauthorized
 	}
 
 	if claims.TokenType != valueobject.TokenTypeRefresh {
+		a.logger.Warn("refresh token with wrong type", "userID", claims.UserID, "tokenType", claims.TokenType)
 		return RefreshOutput{}, errors.ErrUnauthorized
 	}
+
+	a.logger.Debug("refresh token requested", "userID", claims.UserID, "ip", input.IP, "device", input.Device)
 
 	refreshJTI := a.ulidGen.New()
 	refresh, refreshExp, err := valueobject.NewRefreshToken(claims.UserID, a.jwtSecret, refreshJTI)
 	if err != nil {
+		a.logger.Error("failed to create refresh token", "userID", claims.UserID, "error", err)
 		return RefreshOutput{}, err
 	}
 
@@ -54,8 +59,11 @@ func (a *AuthUseCase) Refresh(ctx context.Context, input RefreshInput) (RefreshO
 
 	access, accessExp, err := valueobject.NewAccessToken(claims.UserID, a.jwtSecret, sessionID, refreshJTI)
 	if err != nil {
+		a.logger.Error("failed to create access token", "userID", claims.UserID, "error", err)
 		return RefreshOutput{}, err
 	}
+
+	a.logger.Info("user refresh token successful", "userID", claims.UserID, "oldJTI", claims.JTI, "newJTI", refreshJTI)
 
 	return RefreshOutput{
 		AccessToken:           access,

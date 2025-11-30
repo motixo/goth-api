@@ -20,8 +20,10 @@ type RegisterOutput struct {
 }
 
 func (a *AuthUseCase) Signup(ctx context.Context, input RegisterInput) (RegisterOutput, error) {
+	a.logger.Info("signup attempt", "email", input.Email)
 	hashedPassword, err := a.passwordService.Hash(ctx, input.Password)
 	if err != nil {
+		a.logger.Error("failed to hash password", "email", input.Email, "error", err)
 		return RegisterOutput{}, err
 	}
 
@@ -35,9 +37,11 @@ func (a *AuthUseCase) Signup(ctx context.Context, input RegisterInput) (Register
 
 	err = a.userRepo.Create(ctx, rq)
 	if err != nil {
+		a.logger.Error("failed to create user", "email", input.Email, "error", err)
 		return RegisterOutput{}, err
 	}
 
+	a.logger.Info("user registered successfully", "userID", rq.ID, "email", rq.Email)
 	return RegisterOutput{
 		User: user.UserResponse{
 			ID:        rq.ID,
