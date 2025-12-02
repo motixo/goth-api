@@ -9,9 +9,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/mot0x0/goth-api/internal/config"
-	"github.com/mot0x0/goth-api/internal/domain/errors"
-	"github.com/mot0x0/goth-api/internal/domain/valueobject"
+	"github.com/motixo/goth-api/internal/config"
+	"github.com/motixo/goth-api/internal/domain/errors"
+	"github.com/motixo/goth-api/internal/domain/valueobject"
 	"golang.org/x/crypto/argon2"
 )
 
