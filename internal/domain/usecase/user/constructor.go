@@ -1,6 +1,6 @@
 package user
 
-import "github.com/mot0x0/goth-api/internal/domain/service"
+import "github.com/motixo/goth-api/internal/domain/service"
 
 type UserUseCase struct {
 	userRepo Repository

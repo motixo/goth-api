@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/mot0x0/goth-api/internal/domain/service"
-	"github.com/mot0x0/goth-api/internal/domain/usecase/user"
+	"github.com/motixo/goth-api/internal/domain/service"
+	"github.com/motixo/goth-api/internal/domain/usecase/user"
 )
 
 type UserHandler struct {

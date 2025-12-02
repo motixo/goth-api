@@ -3,7 +3,7 @@ package service_test
 import (
 	"testing"
 
-	"github.com/mot0x0/goth-api/internal/domain/service"
+	"github.com/motixo/goth-api/internal/domain/service"
 )
 
 func TestULIDGenerator_New(t *testing.T) {

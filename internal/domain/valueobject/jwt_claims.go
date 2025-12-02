@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/mot0x0/goth-api/internal/domain/errors"
+	"github.com/motixo/goth-api/internal/domain/errors"
 )
 
 type TokenType string

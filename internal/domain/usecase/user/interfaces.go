@@ -3,11 +3,12 @@ package user
 import (
 	"context"
 
-	"github.com/mot0x0/goth-api/internal/domain/entity"
+	"github.com/motixo/goth-api/internal/domain/entity"
 )
 
 type UseCase interface {
 	GetProfile(ctx context.Context, userID string) (*entity.User, error)
+	GetUser(ctx context.Context, userID string) (*entity.User, error)
 }
 
 type Repository interface {
