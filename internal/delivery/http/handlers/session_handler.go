@@ -51,6 +51,11 @@ func (s *SessionHandler) DeleteSessions(c *gin.Context) {
 		response.BadRequest(c, "Invalid request payload")
 		return
 	}
+	if !input.RemoveOthers && len(input.TargetSessions) == 0 {
+		s.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP(), "device", c.GetHeader("User-Agent"))
+		response.BadRequest(c, "Invalid request payload")
+		return
+	}
 
 	userID := c.GetString("user_id")
 	if userID == "" {

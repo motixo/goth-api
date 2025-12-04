@@ -10,19 +10,64 @@ import (
 )
 
 func SeedPermissions(db *sqlx.DB) error {
-	adminPerm := valueobject.PermFullAccess
-	adminRole := valueobject.RoleAdmin
 
-	_, err := db.Exec(`
-			INSERT INTO permissions (id, role_id, action, created_at)
-			VALUES (gen_random_uuid(), $1, $2, CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
-			ON CONFLICT (role_id, action) DO NOTHING
-		`, int8(adminRole), adminPerm)
+	adminRole := int8(valueobject.RoleAdmin)
+	clientRole := int8(valueobject.RoleClient)
+	operatorRole := int8(valueobject.RoleOperator)
+
+	adminPerm := valueobject.PermFullAccess
+
+	clientPerm := []valueobject.Permission{
+		valueobject.PermUserRead,
+		valueobject.PermUserUpdate,
+		valueobject.PermUserDelete,
+		valueobject.PermSessionRead,
+		valueobject.PermSessionDelete,
+	}
+
+	operatorPerm := []valueobject.Permission{
+		valueobject.PermUserRead,
+		valueobject.PermUserUpdate,
+		valueobject.PermUserChangeStatus,
+		valueobject.PermSessionRead,
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	insertStmt := `
+    INSERT INTO permissions (id, role_id, action, created_at)
+    VALUES (gen_random_uuid(), $1, $2, CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
+    ON CONFLICT (role_id, action) DO NOTHING;
+	`
+
+	// Admin
+	_, err = tx.Exec(insertStmt, adminRole, adminPerm)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	// Client
+	for _, p := range clientPerm {
+		_, err = tx.Exec(insertStmt, clientRole, p)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Operator
+	for _, p := range operatorPerm {
+		_, err = tx.Exec(insertStmt, operatorRole, p)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+
 }
 
 func SeedAdminUser(db *sqlx.DB, passwordHasher service.PasswordHasher, cfg *config.Config) error {
