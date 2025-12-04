@@ -4,9 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goth-api/internal/delivery/http/handlers"
 	"github.com/motixo/goth-api/internal/delivery/http/middleware"
+	"github.com/motixo/goth-api/internal/domain/valueobject"
 )
 
-func RegisterAuthRoutes(router *gin.RouterGroup, authHandler *handlers.AuthHandler, authMiddleware *middleware.AuthMiddleware) {
+func RegisterAuthRoutes(
+	router *gin.RouterGroup,
+	authHandler *handlers.AuthHandler,
+	authMiddleware *middleware.AuthMiddleware,
+	permMiddleware *middleware.PermMiddleware,
+) {
 	public := router.Group("/auth")
 	{
 		public.POST("/login", authHandler.Login)
@@ -17,7 +23,9 @@ func RegisterAuthRoutes(router *gin.RouterGroup, authHandler *handlers.AuthHandl
 	private := router.Group("/auth")
 	private.Use(authMiddleware.Required())
 	{
-		private.POST("/logout", authHandler.Logout)
+		private.POST("/logout",
+			permMiddleware.Require(valueobject.PermSessionDelete),
+			authHandler.Logout)
 	}
 
 }

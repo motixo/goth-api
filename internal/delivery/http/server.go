@@ -59,7 +59,7 @@ func (s *Server) setupRoutes() {
 	v1 := api.Group("/v1")
 
 	routes.RegisterUserRoutes(v1, s.userHandler, s.sessionHandler, s.authMiddleware, s.permMiddleware)
-	routes.RegisterAuthRoutes(v1, s.authHandler, s.authMiddleware)
+	routes.RegisterAuthRoutes(v1, s.authHandler, s.authMiddleware, s.permMiddleware)
 
 	// Health check
 	s.engine.GET("/health", func(c *gin.Context) {
