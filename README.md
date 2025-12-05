@@ -1,4 +1,4 @@
-<p align="center">
+<p align="left">
   <img src="https://raw.githubusercontent.com/motixo/goat-api/refs/heads/main/assets/mascot.png" alt="GOAT Mascot" width="250">
 </p>
 
