@@ -2,7 +2,6 @@ package auth
 
 import (
 	"context"
-	"time"
 
 	"github.com/motixo/goth-api/internal/domain/errors"
 	"github.com/motixo/goth-api/internal/domain/usecase/session"
@@ -10,76 +9,65 @@ import (
 	"github.com/motixo/goth-api/internal/domain/valueobject"
 )
 
-type LoginInput struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-	IP       string `json:"-"`
-	Device   string `json:"-"`
-}
-
-type LoginOutput struct {
-	AccessToken           string            `json:"access_token"`
-	AccessTokenExpiresAt  time.Time         `json:"access_token_expires_at"`
-	RefreshToken          string            `json:"refresh_token"`
-	RefreshTokenExpiresAt time.Time         `json:"refresh_token_expires_at"`
-	User                  user.UserResponse `json:"user"`
-}
-
-func (a *AuthUseCase) Login(ctx context.Context, input LoginInput) (LoginOutput, error) {
-	a.logger.Info("login attempt", "email", input.Email, "ip", input.IP, "device", input.Device)
-	u, err := a.userRepo.FindByEmail(ctx, input.Email)
+func (us *AuthUseCase) Login(ctx context.Context, input LoginInput) (LoginOutput, error) {
+	us.logger.Info("login attempt", "email", input.Email, "ip", input.IP, "device", input.Device)
+	userEntity, err := us.userRepo.FindByEmail(ctx, input.Email)
 	if err != nil {
-		a.logger.Error("login failed", "error", err)
+		us.logger.Error("login failed", "error", err)
 		return LoginOutput{}, err
 	}
-	if u == nil {
-		a.logger.Warn("login failed: user not found", "email", input.Email)
+	if userEntity == nil {
+		us.logger.Warn("login failed: user not found", "email", input.Email)
 		return LoginOutput{}, errors.ErrNotFound
 	}
 
-	if !a.passwordHasher.Verify(ctx, input.Password, valueobject.PasswordFromHash(u.Password)) {
-		a.logger.Warn("login failed: invalid password", "email", input.Email, "ip", input.IP, "device", input.Device)
+	if !us.passwordHasher.Verify(ctx, input.Password, valueobject.PasswordFromHash(userEntity.Password)) {
+		us.logger.Warn("login failed: invalid password", "email", input.Email, "ip", input.IP, "device", input.Device)
 		return LoginOutput{}, errors.ErrUnauthorized
 	}
 
-	refreshJTI := a.ulidGen.New()
-	refresh, refreshExp, err := valueobject.NewRefreshToken(u.ID, a.jwtSecret, refreshJTI)
+	refreshJTI := us.ulidGen.New()
+	refresh, refreshClaims, err := us.jwtService.GenerateRefreshToken(userEntity.ID, refreshJTI, us.refreshTTL)
 	if err != nil {
-		a.logger.Error("failed to create refresh token", "userID", u.ID, "error", err)
+		us.logger.Error("failed to create refresh token", "userID", userEntity.ID, "error", err)
 		return LoginOutput{}, err
 	}
 
 	sessionInput := session.CreateInput{
-		UserID:       u.ID,
-		CurrentJTI:   refreshJTI,
-		IP:           input.IP,
-		Device:       input.Device,
-		JTIExpiresAt: refreshExp,
+		UserID:     userEntity.ID,
+		CurrentJTI: refreshJTI,
+		IP:         input.IP,
+		Device:     input.Device,
+		JTITTL:     us.refreshTTL,
+		SessionTTL: us.sessionTTL,
 	}
 
-	sesseionID, err := a.sessionUC.CreateSession(ctx, sessionInput)
+	sessionID, err := us.sessionUC.CreateSession(ctx, sessionInput)
 	if err != nil {
 		return LoginOutput{}, err
 	}
 
-	access, accessExp, err := valueobject.NewAccessToken(u.ID, a.jwtSecret, sesseionID, refreshJTI)
+	access, accessClaims, err := us.jwtService.GenerateAccessToken(userEntity.ID, sessionID, refreshJTI, us.accessTTL)
 	if err != nil {
-		a.logger.Error("failed to create access token", "userID", u.ID, "error", err)
+		us.logger.Error("failed to create access token", "userID", userEntity.ID, "error", err)
+		us.sessionUC.DeleteSessions(ctx, session.DeleteSessionsInput{
+			TargetSessions: []string{sessionID},
+		})
 		return LoginOutput{}, err
 	}
 
-	a.logger.Info("user logged in successfully", "userID", u.ID, "refreshJTI", refreshJTI, "sessionID", sesseionID)
+	us.logger.Info("user logged in successfully", "userID", userEntity.ID, "refreshJTI", refreshJTI, "sessionID", sessionID)
 
 	return LoginOutput{
 		AccessToken:           access,
-		AccessTokenExpiresAt:  accessExp,
+		AccessTokenExpiresAt:  accessClaims.GetExpiresAt(),
 		RefreshToken:          refresh,
-		RefreshTokenExpiresAt: refreshExp,
+		RefreshTokenExpiresAt: refreshClaims.GetExpiresAt(),
 		User: user.UserResponse{
-			ID:        u.ID,
-			Email:     u.Email,
-			Role:      u.Role.String(),
-			CreatedAt: u.CreatedAt,
+			ID:        userEntity.ID,
+			Email:     userEntity.Email,
+			Role:      userEntity.Role.String(),
+			CreatedAt: userEntity.CreatedAt,
 		},
 	}, nil
 }

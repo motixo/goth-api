@@ -47,7 +47,7 @@ func NewDatabase(cfg *config.Config, logger service.Logger, passwordSrv service.
 
 	logger.Info("Database connected and users, permissions table ensured")
 
-	if cfg.IsSeeded == 0 {
+	if cfg.Seed == 1 {
 		if err := SeedPermissions(db); err != nil {
 			logger.Error("failed to seed permissions", "error", err)
 			return nil, err

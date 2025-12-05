@@ -1,17 +1,18 @@
 package session
 
 import (
+	"github.com/motixo/goth-api/internal/domain/repository"
 	"github.com/motixo/goth-api/internal/domain/service"
 )
 
 type SessionUseCase struct {
-	sessionRepo Repository
+	sessionRepo repository.SessionRepository
 	logger      service.Logger
 	ulidGen     *service.ULIDGenerator
 }
 
 func NewUsecase(
-	r Repository,
+	r repository.SessionRepository,
 	logger service.Logger,
 	ulidGen *service.ULIDGenerator,
 ) UseCase {

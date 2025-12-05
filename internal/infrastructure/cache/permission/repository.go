@@ -3,20 +3,19 @@ package permission
 import (
 	"context"
 
-	"github.com/motixo/goth-api/internal/adapter/postgres/permission"
-	permissionCache "github.com/motixo/goth-api/internal/adapter/redis/permission"
 	"github.com/motixo/goth-api/internal/domain/entity"
+	"github.com/motixo/goth-api/internal/domain/repository"
 	"github.com/motixo/goth-api/internal/domain/service"
-	permissionUC "github.com/motixo/goth-api/internal/domain/usecase/permission"
+	"github.com/motixo/goth-api/internal/infrastructure/database/postgres/permission"
 )
 
 type CachedRepository struct {
 	dbRepo *permission.Repository
-	cache  *permissionCache.Cache
+	cache  *Cache
 	logger service.Logger
 }
 
-func NewCachedRepository(dbRepo *permission.Repository, cache *permissionCache.Cache, logger service.Logger) permissionUC.Repository {
+func NewCachedRepository(dbRepo *permission.Repository, cache *Cache, logger service.Logger) repository.PermissionRepository {
 	return &CachedRepository{dbRepo: dbRepo, cache: cache, logger: logger}
 }
 

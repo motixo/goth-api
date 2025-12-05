@@ -3,7 +3,7 @@ package session
 import (
 	"fmt"
 
-	"github.com/motixo/goth-api/internal/domain/usecase/session"
+	"github.com/motixo/goth-api/internal/domain/repository"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -11,7 +11,7 @@ type Repository struct {
 	client *redis.Client
 }
 
-func NewRepository(client *redis.Client) session.Repository {
+func NewRepository(client *redis.Client) repository.SessionRepository {
 	return &Repository{client: client}
 }
 

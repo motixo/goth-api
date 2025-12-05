@@ -10,15 +10,6 @@ import (
 	"github.com/motixo/goth-api/internal/domain/valueobject"
 )
 
-type RegisterInput struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
-type RegisterOutput struct {
-	User user.UserResponse `json:"user"`
-}
-
 func (a *AuthUseCase) Signup(ctx context.Context, input RegisterInput) (RegisterOutput, error) {
 	a.logger.Info("signup attempt", "email", input.Email)
 	hashedPassword, err := a.passwordHasher.Hash(ctx, input.Password)

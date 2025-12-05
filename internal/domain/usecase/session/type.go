@@ -10,3 +10,28 @@ type SessionResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Current   bool      `json:"current"`
 }
+
+type CreateInput struct {
+	UserID     string
+	Device     string
+	IP         string
+	CurrentJTI string
+	SessionTTL time.Duration
+	JTITTL     time.Duration
+}
+
+type DeleteSessionsInput struct {
+	UserID         string
+	CurrentSession string
+	TargetSessions []string `json:"session_ids"`
+	RemoveOthers   bool     `json:"others"`
+}
+
+type RotateInput struct {
+	OldJTI     string
+	CurrentJTI string
+	Device     string
+	IP         string
+	SessionTTL time.Duration
+	JTITTL     time.Duration
+}

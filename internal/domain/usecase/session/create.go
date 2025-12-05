@@ -7,19 +7,11 @@ import (
 	"github.com/motixo/goth-api/internal/domain/entity"
 )
 
-type CreateInput struct {
-	UserID       string
-	Device       string
-	IP           string
-	CurrentJTI   string
-	JTIExpiresAt time.Time
-}
-
 func (s *SessionUseCase) CreateSession(ctx context.Context, input CreateInput) (string, error) {
 	s.logger.Debug("creating session", "userID", input.UserID, "device", input.Device, "ip", input.IP, "currentJTI", input.CurrentJTI)
 
 	now := time.Now().UTC()
-	expiresAt := now.Add(365 * 24 * time.Hour)
+	expiresAt := now.Add(input.SessionTTL)
 
 	session := &entity.Session{
 		ID:                s.ulidGen.New(),
@@ -30,8 +22,8 @@ func (s *SessionUseCase) CreateSession(ctx context.Context, input CreateInput) (
 		CreatedAt:         now,
 		UpdatedAt:         now,
 		ExpiresAt:         expiresAt,
-		JTITTLSeconds:     int(time.Until(input.JTIExpiresAt).Seconds()),
-		SessionTTLSeconds: int(time.Until(expiresAt).Seconds()),
+		JTITTLSeconds:     int64(input.JTITTL.Seconds()),
+		SessionTTLSeconds: int64(input.SessionTTL.Seconds()),
 	}
 	err := s.sessionRepo.Create(ctx, session)
 	if err != nil {

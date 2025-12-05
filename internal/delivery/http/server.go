@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/motixo/goth-api/internal/config"
 	"github.com/motixo/goth-api/internal/delivery/http/handlers"
 	"github.com/motixo/goth-api/internal/delivery/http/middleware"
 	"github.com/motixo/goth-api/internal/delivery/http/routes"
@@ -28,12 +27,12 @@ func NewServer(
 	permUC permission.UseCase,
 	sessionUC session.UseCase,
 	logger service.Logger,
-	cfg *config.Config,
+	jwtService service.JWTService,
 ) *Server {
 	router := gin.New()
 
 	// Global middleware
-	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret, sessionUC)
+	authMiddleware := middleware.NewAuthMiddleware(jwtService, sessionUC)
 	permMiddleware := middleware.NewPermMiddleware(userUC, permUC)
 	router.Use(middleware.Recovery(logger))
 
