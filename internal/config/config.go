@@ -12,23 +12,25 @@ import (
 
 // Config holds all application configuration
 type Config struct {
-	Env            string        `envconfig:"ENV" default:"development"`
-	ServerPort     string        `envconfig:"SERVER_PORT" default:"8080"`
-	DBHost         string        `envconfig:"DB_HOST" required:"true"`
-	DBPort         string        `envconfig:"DB_PORT" default:"5432"`
-	DBUser         string        `envconfig:"DB_USER" required:"true"`
-	DBPassword     string        `envconfig:"DB_PASSWORD" required:"true"`
-	DBName         string        `envconfig:"DB_NAME" required:"true"`
-	JWTSecret      string        `envconfig:"JWT_SECRET" required:"true"`
-	PasswordPepper string        `envconfig:"PASSWORD_PEPPER" required:"true"`
-	RedisAddr      string        `envconfig:"REDIS_ADDR" default:"localhost:6379"`
-	RedisPassword  string        `envconfig:"REDIS_PASSWORD"`
-	RedisDB        int           `envconfig:"REDIS_DB" default:"0"`
-	JWTExpiration  time.Duration `envconfig:"JWT_EXPIRATION" default:"24h"`
-	GinMode        string        `envconfig:"GIN_MODE" default:"debug"`
-	IsSeeded       int           `envconfig:"SEEDED" default:"1"`
-	AdminEmail     string        `envconfig:"ADMIN_EMAIL" default:"admin@goth.api"`
-	AdminPassword  string        `envconfig:"ADMIN_PASSWORD" default:"Qwerty@123"`
+	Env                    string        `envconfig:"ENV" default:"development"`
+	ServerPort             string        `envconfig:"SERVER_PORT" default:"8080"`
+	DBHost                 string        `envconfig:"DB_HOST" required:"true"`
+	DBPort                 string        `envconfig:"DB_PORT" default:"5432"`
+	DBUser                 string        `envconfig:"DB_USER" required:"true"`
+	DBPassword             string        `envconfig:"DB_PASSWORD" required:"true"`
+	DBName                 string        `envconfig:"DB_NAME" required:"true"`
+	JWTSecret              string        `envconfig:"JWT_SECRET" required:"true"`
+	PasswordPepper         string        `envconfig:"PASSWORD_PEPPER" required:"true"`
+	RedisAddr              string        `envconfig:"REDIS_ADDR" default:"localhost:6379"`
+	RedisPassword          string        `envconfig:"REDIS_PASSWORD"`
+	RedisDB                int           `envconfig:"REDIS_DB" default:"0"`
+	JWTExpiration          time.Duration `envconfig:"JWT_EXPIRATION" default:"15m"`
+	RefreshTokenExpiration time.Duration `envconfig:"REFRESH_TOKEN_EXPIRATION" default:"168h"`
+	SessionExpiration      time.Duration `envconfig:"SESSION_EXPIRATION" default:"720h"`
+	GinMode                string        `envconfig:"GIN_MODE" default:"debug"`
+	Seed                   int           `envconfig:"SEED" default:"1"`
+	AdminEmail             string        `envconfig:"ADMIN_EMAIL" default:"admin@goth.api"`
+	AdminPassword          string        `envconfig:"ADMIN_PASSWORD" default:"Qwerty@123"`
 }
 
 // Load reads configuration from environment variables and .env file

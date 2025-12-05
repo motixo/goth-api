@@ -1,35 +1,46 @@
 package auth
 
 import (
-	"github.com/motixo/goth-api/internal/config"
+	"time"
+
+	"github.com/motixo/goth-api/internal/domain/repository"
 	"github.com/motixo/goth-api/internal/domain/service"
 	"github.com/motixo/goth-api/internal/domain/usecase/session"
-	"github.com/motixo/goth-api/internal/domain/usecase/user"
 )
 
 type AuthUseCase struct {
-	userRepo       user.Repository
+	userRepo       repository.UserRepository
 	sessionUC      session.UseCase
 	ulidGen        *service.ULIDGenerator
 	passwordHasher service.PasswordHasher
+	jwtService     service.JWTService
 	logger         service.Logger
-	jwtSecret      string
+	accessTTL      time.Duration
+	refreshTTL     time.Duration
+	sessionTTL     time.Duration
 }
 
 func NewUsecase(
-	userRepo user.Repository,
+	userRepo repository.UserRepository,
 	sessionUC session.UseCase,
 	passwordHasher service.PasswordHasher,
-	logger service.Logger,
+	jwtService service.JWTService,
 	ulidGen *service.ULIDGenerator,
-	cfg *config.Config,
+	logger service.Logger,
+	accessTTL AccessTTL,
+	refreshTTL RefreshTTL,
+	sessionTTL SessionTTL,
+
 ) UseCase {
 	return &AuthUseCase{
 		userRepo:       userRepo,
 		sessionUC:      sessionUC,
 		passwordHasher: passwordHasher,
+		jwtService:     jwtService,
 		logger:         logger,
 		ulidGen:        ulidGen,
-		jwtSecret:      cfg.JWTSecret,
+		accessTTL:      time.Duration(accessTTL),
+		refreshTTL:     time.Duration(refreshTTL),
+		sessionTTL:     time.Duration(sessionTTL),
 	}
 }

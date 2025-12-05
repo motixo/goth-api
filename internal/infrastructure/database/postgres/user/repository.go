@@ -8,14 +8,14 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/motixo/goth-api/internal/domain/entity"
-	"github.com/motixo/goth-api/internal/domain/usecase/user"
+	"github.com/motixo/goth-api/internal/domain/repository"
 )
 
 type Repository struct {
 	db *sqlx.DB
 }
 
-func NewRepository(db *sqlx.DB) user.Repository {
+func NewRepository(db *sqlx.DB) repository.UserRepository {
 	return &Repository{db: db}
 }
 

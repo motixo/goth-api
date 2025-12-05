@@ -9,14 +9,16 @@ var (
 	ErrInternal     = errors.New("internal server error")
 	ErrBadRequest   = errors.New("bad request")
 	ErrUnauthorized = errors.New("unauthorized")
+	ErrTokenExpired = errors.New("token expired")
 	ErrForbidden    = errors.New("forbidden")
 	ErrNotFound     = errors.New("not found")
 	ErrConflict     = errors.New("conflict")
+	ErrInvalidInput = errors.New("invalid input")
 )
 
 func HTTPStatus(err error) int {
 	switch err {
-	case ErrUnauthorized:
+	case ErrUnauthorized, ErrTokenExpired:
 		return http.StatusUnauthorized
 	case ErrForbidden:
 		return http.StatusForbidden
@@ -28,7 +30,8 @@ func HTTPStatus(err error) int {
 	case ErrBadRequest,
 		ErrPasswordTooShort,
 		ErrPasswordTooLong,
-		ErrPasswordPolicyViolation:
+		ErrPasswordPolicyViolation,
+		ErrInvalidInput:
 		return http.StatusBadRequest
 
 	default:

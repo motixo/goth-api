@@ -11,6 +11,6 @@ type Session struct {
 	CreatedAt         time.Time `json:"created_at"`
 	ExpiresAt         time.Time `json:"expires_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
-	JTITTLSeconds     int       `json:"jti_ttl_seconds"`
-	SessionTTLSeconds int       `json:"session_ttl_seconds"`
+	JTITTLSeconds     int64     `json:"jti_ttl_seconds"`
+	SessionTTLSeconds int64     `json:"session_ttl_seconds"`
 }

@@ -56,7 +56,7 @@ func (r *Repository) RotateJTI(
 	ctx context.Context,
 	oldJTI, newJTI, ip, device string,
 	expiresAt time.Time,
-	jtiTTLSeconds, sessionTTLSeconds int,
+	jtiTTL, sessionTTL int64,
 ) (string, error) {
 
 	oldJTIKey := r.key("jti", oldJTI)
@@ -70,8 +70,8 @@ func (r *Repository) RotateJTI(
 		device,
 		updatedAt,
 		expiresAt.Unix(),
-		jtiTTLSeconds,
-		sessionTTLSeconds,
+		jtiTTL,
+		sessionTTL,
 	}
 
 	res, err := rotateJtiLua.Run(ctx, r.client, []string{oldJTIKey, newJTIKey}, argv...).Result()

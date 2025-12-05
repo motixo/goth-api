@@ -5,19 +5,19 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goth-api/internal/delivery/http/response"
+	"github.com/motixo/goth-api/internal/domain/service"
 	"github.com/motixo/goth-api/internal/domain/usecase/session"
-	"github.com/motixo/goth-api/internal/domain/valueobject"
 )
 
 type AuthMiddleware struct {
-	sessionUC session.UseCase
-	jwtSecret string
+	sessionUC  session.UseCase
+	jwtService service.JWTService
 }
 
-func NewAuthMiddleware(jwtSecret string, sessionUC session.UseCase) *AuthMiddleware {
+func NewAuthMiddleware(jwtService service.JWTService, sessionUC session.UseCase) *AuthMiddleware {
 	return &AuthMiddleware{
-		jwtSecret: jwtSecret,
-		sessionUC: sessionUC,
+		jwtService: jwtService,
+		sessionUC:  sessionUC,
 	}
 }
 
@@ -31,9 +31,15 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 		}
 
 		token := strings.TrimPrefix(auth, "Bearer ")
-		claims, err := valueobject.ParseAndValidate(token, m.jwtSecret)
-		if err != nil || claims.TokenType != valueobject.TokenTypeAccess {
+		claims, err := m.jwtService.ParseAndValidate(token)
+		if err != nil {
 			response.Unauthorized(c, "invalid token")
+			c.Abort()
+			return
+		}
+
+		if err := m.jwtService.ValidateClaims(claims); err != nil {
+			response.Unauthorized(c, "token validation failed")
 			c.Abort()
 			return
 		}
