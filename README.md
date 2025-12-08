@@ -42,7 +42,7 @@ This project follows Clean Architecture principles:
 ┌─────────────────┐
 │   Delivery      │  HTTP Handlers, Middleware
 ├─────────────────┤
-│ Infrastructure  │  PostgreSQL, Redis, JWT, Logger
+│ infra  │  PostgreSQL, Redis, JWT, Logger
 ├─────────────────┤
 │     Domain      │  Entities, Value Objects, Use Cases, Services
 ├─────────────────┤
@@ -54,7 +54,7 @@ This project follows Clean Architecture principles:
 
 - **Domain Layer**: Business logic, entities, and value objects
 - **Use Cases**: Business rules and application logic
-- **Infrastructure**: Database, cache, external services
+- **infra**: Database, cache, external services
 - **Delivery**: HTTP handlers and middleware
 - **Repository Pattern**: Abstract data access with caching layer
 
@@ -119,7 +119,7 @@ This project follows Clean Architecture principles:
 │   │   ├── repository/     # Repository interfaces
 │   │   ├── usecase/        # Use cases
 │   │   └── validation/     # Validation logic
-│   ├── infrastructure/     # Infrastructure implementations
+│   ├── infra/     # infra implementations
 │   │   ├── auth/           # JWT and auth services
 │   │   ├── cache/          # Cache implementations
 │   │   ├── database/       # Database implementations

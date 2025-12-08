@@ -2,7 +2,7 @@ package permission
 
 import (
 	"github.com/motixo/goat-api/internal/domain/repository"
-	"github.com/motixo/goat-api/internal/infrastructure/logger"
+	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type PermissionUseCase struct {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/motixo/goat-api/internal/config"
-	"github.com/motixo/goat-api/internal/infrastructure/logger"
+	"github.com/motixo/goat-api/internal/infra/logger"
 	"github.com/redis/go-redis/v9"
 )
 

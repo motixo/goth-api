@@ -7,7 +7,7 @@ import (
 	"github.com/motixo/goat-api/internal/domain/errors"
 	"github.com/motixo/goat-api/internal/domain/usecase/user"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
-	"github.com/motixo/goat-api/internal/infrastructure/logger"
+	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type UserHandler struct {

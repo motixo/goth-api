@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
-	"github.com/motixo/goat-api/internal/infrastructure/logger"
+	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 // Recovery returns a middleware that recovers from panics,
