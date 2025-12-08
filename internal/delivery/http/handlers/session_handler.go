@@ -5,7 +5,7 @@ import (
 	"github.com/motixo/goat-api/internal/delivery/http/helper"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
 	"github.com/motixo/goat-api/internal/domain/usecase/session"
-	"github.com/motixo/goat-api/internal/infrastructure/logger"
+	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type SessionHandler struct {

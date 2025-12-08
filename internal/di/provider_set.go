@@ -1,4 +1,4 @@
-package wire
+package di
 
 import (
 	"time"
@@ -20,21 +20,24 @@ import (
 	"github.com/motixo/goat-api/internal/domain/usecase/session"
 	"github.com/motixo/goat-api/internal/domain/usecase/user"
 
-	// Infrastructure layer
-	authInfra "github.com/motixo/goat-api/internal/infrastructure/auth"
-	permissionCache "github.com/motixo/goat-api/internal/infrastructure/cache/permission"
-	roleCache "github.com/motixo/goat-api/internal/infrastructure/cache/role"
-	"github.com/motixo/goat-api/internal/infrastructure/database/postgres"
-	postgresPermission "github.com/motixo/goat-api/internal/infrastructure/database/postgres/permission"
-	postgresUser "github.com/motixo/goat-api/internal/infrastructure/database/postgres/user"
-	"github.com/motixo/goat-api/internal/infrastructure/logger"
-	redisSession "github.com/motixo/goat-api/internal/infrastructure/storage/redis/session"
+	// infra layer
+	authInfra "github.com/motixo/goat-api/internal/infra/auth"
+	permissionCache "github.com/motixo/goat-api/internal/infra/cache/permission"
+	roleCache "github.com/motixo/goat-api/internal/infra/cache/role"
+	"github.com/motixo/goat-api/internal/infra/database/postgres"
+	postgresPermission "github.com/motixo/goat-api/internal/infra/database/postgres/permission"
+	postgresUser "github.com/motixo/goat-api/internal/infra/database/postgres/user"
+	"github.com/motixo/goat-api/internal/infra/logger"
+	redisSession "github.com/motixo/goat-api/internal/infra/storage/redis/session"
 )
 
-// Infrastructure providers
-var InfrastructureSet = wire.NewSet(
+// infra providers
+var infraSet = wire.NewSet(
 	config.Load,
 	ProvideRedisClient,
+	NewZapLogger,
+	wire.Bind(new(logger.Logger), new(*logger.ZapLogger)),
+	authInfra.NewPasswordService,
 	postgres.NewDatabase,
 )
 
@@ -50,11 +53,8 @@ var RepositorySet = wire.NewSet(
 // Service providers
 var ServiceSet = wire.NewSet(
 	service.NewULIDGenerator,
-	authInfra.NewPasswordService,
 	NewJWTManager,
-	NewZapLogger,
 	wire.Bind(new(service.JWTService), new(*authInfra.JWTManager)),
-	wire.Bind(new(logger.Logger), new(*logger.ZapLogger)),
 )
 
 // Configuration providers
@@ -64,10 +64,10 @@ var ConfigSet = wire.NewSet(
 	ProvideSessionTTL,
 )
 
-// UseCase providers - Wire will automatically use your constructor!
+// UseCase provider
 var UseCaseSet = wire.NewSet(
-	auth.NewUsecase,    // Wire will match parameters by type
-	session.NewUsecase, // You'll need to fix session constructor too
+	auth.NewUsecase,
+	session.NewUsecase,
 	user.NewUsecase,
 	permission.NewUsecase,
 )
@@ -84,7 +84,7 @@ var HTTPSet = wire.NewSet(
 
 // ProviderSet bundles everything
 var ProviderSet = wire.NewSet(
-	InfrastructureSet,
+	infraSet,
 	RepositorySet,
 	ServiceSet,
 	ConfigSet,
@@ -92,7 +92,7 @@ var ProviderSet = wire.NewSet(
 	HTTPSet,
 )
 
-// Infrastructure providers
+// infra providers
 func ProvideRedisClient(cfg *config.Config) *redis.Client {
 	return redis.NewClient(&redis.Options{
 		Addr:     cfg.RedisAddr,

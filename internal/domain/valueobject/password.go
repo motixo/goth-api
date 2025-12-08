@@ -3,7 +3,6 @@ package valueobject
 
 import (
 	"database/sql/driver"
-	"errors"
 
 	"github.com/motixo/goat-api/internal/domain/validation"
 )
@@ -41,13 +40,4 @@ func (p Password) Validate() error {
 		return nil // Already hashed, assume valid
 	}
 	return validation.ValidatePasswordPolicy(p.value)
-}
-
-func (p *Password) Scan(src interface{}) error {
-	s, ok := src.(string)
-	if !ok {
-		return errors.New("failed to scan Password: not a string")
-	}
-	p.value = s
-	return nil
 }

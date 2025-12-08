@@ -11,7 +11,7 @@ import (
 	"github.com/motixo/goat-api/internal/domain/usecase/permission"
 	"github.com/motixo/goat-api/internal/domain/usecase/session"
 	"github.com/motixo/goat-api/internal/domain/usecase/user"
-	"github.com/motixo/goat-api/internal/infrastructure/logger"
+	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type Server struct {

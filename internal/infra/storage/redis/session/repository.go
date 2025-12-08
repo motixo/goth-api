@@ -9,7 +9,7 @@ import (
 
 	"github.com/motixo/goat-api/internal/domain/entity"
 	"github.com/motixo/goat-api/internal/domain/repository"
-	"github.com/motixo/goat-api/internal/infrastructure/helper"
+	"github.com/motixo/goat-api/internal/infra/helper"
 	"github.com/redis/go-redis/v9"
 )
 

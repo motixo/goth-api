@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/motixo/goat-api/internal/infrastructure/helper"
+	"github.com/motixo/goat-api/internal/infra/helper"
 	"github.com/redis/go-redis/v9"
 )
 
