@@ -5,17 +5,17 @@ import (
 	"github.com/motixo/goat-api/internal/delivery/http/helper"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
 	"github.com/motixo/goat-api/internal/domain/errors"
+	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/usecase/user"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
-	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type UserHandler struct {
 	usecase user.UseCase
-	logger  logger.Logger
+	logger  service.Logger
 }
 
-func NewUserHandler(usecase user.UseCase, logger logger.Logger) *UserHandler {
+func NewUserHandler(usecase user.UseCase, logger service.Logger) *UserHandler {
 	return &UserHandler{
 		usecase: usecase,
 		logger:  logger,
@@ -77,7 +77,31 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	response.OK(c, "Deleted")
 }
 
-func (h *UserHandler) UpdatePassword(c *gin.Context) {
+func (h *UserHandler) ChangeEmail(c *gin.Context) {
+	helper.LogRequest(h.logger, c)
+
+	var input user.UpdateEmailInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		h.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP())
+		response.BadRequest(c, "Invalid request payload")
+		return
+	}
+
+	err := h.usecase.ChangeEmail(c, user.UpdateEmailInput{
+		UserID: input.UserID,
+		Email:  input.Email,
+	})
+
+	if err != nil {
+		response.Internal(c)
+		return
+	}
+
+	response.OK(c, "user updated successfully")
+}
+
+func (h *UserHandler) ChangePassword(c *gin.Context) {
 	helper.LogRequest(h.logger, c)
 
 	userID := c.GetString("user_id")
@@ -92,12 +116,8 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		response.BadRequest(c, "Invalid request payload")
 		return
 	}
-
-	err := h.usecase.ChangePassword(c, user.UpdatePassInput{
-		UserID:      userID,
-		NewPassword: input.NewPassword,
-		OldPassword: input.OldPassword,
-	})
+	input.UserID = userID
+	err := h.usecase.ChangePassword(c, input)
 
 	if err != nil {
 		if err == errors.ErrInvalidPassword {
@@ -112,10 +132,10 @@ func (h *UserHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, "Password updated successfully")
+	response.OK(c, "password updated successfully")
 }
 
-func (h *UserHandler) UpdateRole(c *gin.Context) {
+func (h *UserHandler) ChangeRole(c *gin.Context) {
 	helper.LogRequest(h.logger, c)
 
 	var input user.UpdateRoleInput
@@ -126,21 +146,17 @@ func (h *UserHandler) UpdateRole(c *gin.Context) {
 		return
 	}
 
-	role := valueobject.UserRole(input.Role)
-	err := h.usecase.UpdateUser(c, user.UserUpdateInput{
-		UserID: input.UserID,
-		Role:   &role,
-	})
+	err := h.usecase.ChangeRole(c, input)
 
 	if err != nil {
 		response.Internal(c)
 		return
 	}
 
-	response.OK(c, "Role updated successfully")
+	response.OK(c, "role updated successfully")
 }
 
-func (h *UserHandler) UpdateStatus(c *gin.Context) {
+func (h *UserHandler) ChangeStatus(c *gin.Context) {
 	helper.LogRequest(h.logger, c)
 
 	var input user.UpdateStatusInput
@@ -152,9 +168,9 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 	}
 
 	status := valueobject.UserStatus(input.Status)
-	err := h.usecase.UpdateUser(c, user.UserUpdateInput{
+	err := h.usecase.ChangeStatus(c, user.UpdateStatusInput{
 		UserID: input.UserID,
-		Status: &status,
+		Status: status,
 	})
 
 	if err != nil {
@@ -162,5 +178,5 @@ func (h *UserHandler) UpdateStatus(c *gin.Context) {
 		return
 	}
 
-	response.OK(c, "Status updated successfully")
+	response.OK(c, "status updated successfully")
 }

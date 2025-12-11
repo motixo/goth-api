@@ -14,11 +14,9 @@ type UserResponse struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-type UserUpdateInput struct {
+type UpdateEmailInput struct {
 	UserID string
-	Email  *string
-	Status *valueobject.UserStatus
-	Role   *valueobject.UserRole
+	Email  string
 }
 
 type UpdatePassInput struct {

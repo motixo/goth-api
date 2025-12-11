@@ -44,7 +44,7 @@ func (c *Cache) Set(ctx context.Context, roleID int8, perms []*entity.Permission
 	return c.rdb.Set(ctx, helper.Key("perm", "role", roleID), b, c.ttl).Err()
 }
 
-func (c *Cache) Delete(ctx context.Context, roleID *int8) error {
+func (c *Cache) Delete(ctx context.Context, roleID int8) error {
 	return c.rdb.Del(ctx, helper.Key("perm", "role", roleID)).Err()
 }
 

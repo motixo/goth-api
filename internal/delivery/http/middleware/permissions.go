@@ -4,27 +4,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
 	"github.com/motixo/goat-api/internal/domain/entity"
-	"github.com/motixo/goat-api/internal/domain/repository"
-	"github.com/motixo/goat-api/internal/domain/usecase/permission"
+	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/usecase/user"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
 )
 
 type PermMiddleware struct {
-	userUC       user.UseCase
-	permissionUS permission.UseCase
-	roleCache    repository.RoleRepository
+	userUC    user.UseCase
+	permCache service.PermCacheService
+	userCache service.UserCacheService
 }
 
-func NewPermMiddleware(userUC user.UseCase, permissionUS permission.UseCase, roleCache repository.RoleRepository) *PermMiddleware {
+func NewPermMiddleware(userUC user.UseCase, permCache service.PermCacheService, userCache service.UserCacheService) *PermMiddleware {
 	return &PermMiddleware{
-		userUC:       userUC,
-		permissionUS: permissionUS,
-		roleCache:    roleCache,
+		userUC:    userUC,
+		permCache: permCache,
+		userCache: userCache,
 	}
 }
 
-func (p *PermMiddleware) Require(requiredPerm valueobject.Permission) gin.HandlerFunc {
+func (m *PermMiddleware) Require(requiredPerm valueobject.Permission) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userIDVal, exists := c.Get(string(UserIDKey))
 		if !exists {
@@ -39,20 +38,19 @@ func (p *PermMiddleware) Require(requiredPerm valueobject.Permission) gin.Handle
 			return
 		}
 
-		roleID, err := p.roleCache.GetByUserID(c.Request.Context(), userID)
+		roleID, err := m.userCache.GetUserRole(c.Request.Context(), userID)
 		if err != nil {
 			response.Internal(c)
 			c.Abort()
 			return
 		}
-		if roleID == -1 {
-			response.Unauthorized(c, "user role not found")
+		if roleID == valueobject.RoleUnknown {
+			response.Unauthorized(c, "someting went wrong, contact support.")
 			c.Abort()
 			return
 		}
-		userRole := valueobject.UserRole(roleID)
 
-		perms, err := p.permissionUS.GetPermissionsByRole(c.Request.Context(), userRole)
+		perms, err := m.permCache.GetRolePermissions(c.Request.Context(), roleID)
 		if err != nil {
 			response.Internal(c)
 			c.Abort()

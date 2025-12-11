@@ -14,8 +14,4 @@ const (
 	PermUserDelete       Permission = "user:delete"
 	PermUserChangeRole   Permission = "user:change_role"
 	PermUserChangeStatus Permission = "user:change_status"
-
-	// Session
-	PermSessionRead   Permission = "session:read"
-	PermSessionDelete Permission = "session:delete"
 )

@@ -1,17 +1,40 @@
 package valueobject
 
+import "fmt"
+
 type UserStatus uint8
 
 const (
-	StatusInactive UserStatus = iota
+	StatusUnknown UserStatus = iota
+	StatusInactive
 	StatusActive
 	StatusSuspended
 )
 
-func (s UserStatus) String() string {
-	return [...]string{"inactive", "active", "suspended"}[s]
+var statusToString = map[UserStatus]string{
+	StatusInactive:  "inactive",
+	StatusActive:    "active",
+	StatusSuspended: "suspended",
 }
 
-func (s UserStatus) IsValid() bool {
-	return s <= StatusSuspended
+var stringToStatus = map[string]UserStatus{
+	"inactive":  StatusInactive,
+	"active":    StatusActive,
+	"suspended": StatusSuspended,
+}
+
+func (r UserStatus) String() string {
+	s, ok := statusToString[r]
+	if !ok {
+		return "unknown"
+	}
+	return s
+}
+
+func ParseUserStatus(s string) (UserStatus, error) {
+	r, ok := stringToStatus[s]
+	if !ok {
+		return 0, fmt.Errorf("invalid user role: %s", s)
+	}
+	return r, nil
 }

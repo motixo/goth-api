@@ -5,7 +5,8 @@ import "fmt"
 type UserRole uint8
 
 const (
-	RoleClient UserRole = iota
+	RoleUnknown UserRole = iota
+	RoleClient
 	RoleOperator
 	RoleAdmin
 )

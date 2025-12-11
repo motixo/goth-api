@@ -9,19 +9,18 @@ import (
 	"github.com/motixo/goat-api/internal/domain/repository"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
-	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type PermissionUseCase struct {
 	permissionRepo repository.PermissionRepository
 	ulidGen        service.IDGenerator
-	logger         logger.Logger
+	logger         service.Logger
 }
 
 func NewUsecase(
 	p repository.PermissionRepository,
 	ulidGen service.IDGenerator,
-	logger logger.Logger,
+	logger service.Logger,
 ) UseCase {
 	return &PermissionUseCase{
 		permissionRepo: p,
@@ -48,7 +47,7 @@ func (us *PermissionUseCase) Create(ctx context.Context, input CreateInput) (*en
 
 func (us *PermissionUseCase) GetPermissions(ctx context.Context, offset, limit int) ([]*PermissionResponse, int64, error) {
 	us.logger.Info("fetching all permissions")
-	perms, total, err := us.permissionRepo.GetAll(ctx, offset, limit)
+	perms, total, err := us.permissionRepo.List(ctx, offset, limit)
 	if err != nil {
 		us.logger.Error("failed to fetch permissions", "error", err)
 		return nil, 0, err
@@ -68,15 +67,26 @@ func (us *PermissionUseCase) GetPermissions(ctx context.Context, offset, limit i
 	return response, total, nil
 }
 
-func (us *PermissionUseCase) GetPermissionsByRole(ctx context.Context, roleID valueobject.UserRole) ([]*entity.Permission, error) {
-	us.logger.Info("fetching permissions for role", "role_id", roleID)
-	perms, err := us.permissionRepo.GetByRoleID(ctx, int8(roleID))
+func (us *PermissionUseCase) GetPermissionsByRole(ctx context.Context, role valueobject.UserRole) ([]*PermissionResponse, error) {
+	us.logger.Info("fetching permissions for role", "role_id", role.String())
+	perms, err := us.permissionRepo.GetByRoleID(ctx, role)
 	if err != nil {
-		us.logger.Error("failed to fetch permissions", "role_id", roleID, "error", err)
+		us.logger.Error("failed to fetch permissions", "role_id", role.String(), "error", err)
 		return nil, err
 	}
-	us.logger.Info("permissions fetched successfully", "role_id", roleID)
-	return perms, nil
+
+	response := make([]*PermissionResponse, 0, len(perms))
+	for _, perm := range perms {
+		r := &PermissionResponse{
+			ID:        perm.ID,
+			Role:      valueobject.UserRole(perm.RoleID).String(),
+			Action:    perm.Action,
+			CreatedAt: perm.CreatedAt,
+		}
+		response = append(response, r)
+	}
+	us.logger.Info("permissions fetched successfully", "role_id", role.String())
+	return response, nil
 }
 
 func (us *PermissionUseCase) Delete(ctx context.Context, permissionID string) error {

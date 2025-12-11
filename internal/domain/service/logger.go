@@ -1,4 +1,4 @@
-package logger
+package service
 
 type Logger interface {
 	Info(msg string, fields ...any)

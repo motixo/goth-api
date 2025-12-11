@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/handlers"
 	"github.com/motixo/goat-api/internal/delivery/http/middleware"
-	"github.com/motixo/goat-api/internal/domain/valueobject"
 )
 
 func RegisterAuthRoutes(
@@ -24,7 +23,6 @@ func RegisterAuthRoutes(
 	private.Use(authMiddleware.Required())
 	{
 		private.POST("/logout",
-			permMiddleware.Require(valueobject.PermSessionDelete),
 			authHandler.Logout)
 	}
 
