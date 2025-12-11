@@ -3,30 +3,32 @@ package user
 import (
 	"context"
 
+	"github.com/motixo/goat-api/internal/domain/entity"
 	"github.com/motixo/goat-api/internal/domain/errors"
 	"github.com/motixo/goat-api/internal/domain/repository"
-	"github.com/motixo/goat-api/internal/domain/repository/dto"
 	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type UserUseCase struct {
 	userRepo       repository.UserRepository
 	passwordHasher service.PasswordHasher
+	userCache      service.UserCacheService
 	sessionRepo    repository.SessionRepository
-	logger         logger.Logger
+	logger         service.Logger
 }
 
 func NewUsecase(
 	r repository.UserRepository,
 	passwordHasher service.PasswordHasher,
-	logger logger.Logger,
+	logger service.Logger,
 	sessionRepo repository.SessionRepository,
+	userCache service.UserCacheService,
 ) UseCase {
 	return &UserUseCase{
 		userRepo:       r,
 		passwordHasher: passwordHasher,
 		sessionRepo:    sessionRepo,
+		userCache:      userCache,
 		logger:         logger,
 	}
 }
@@ -102,27 +104,15 @@ func (us *UserUseCase) DeleteUser(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (us *UserUseCase) UpdateUser(ctx context.Context, input UserUpdateInput) error {
+func (us *UserUseCase) ChangeEmail(ctx context.Context, input UpdateEmailInput) error {
 	us.logger.Info("update user attempt", "UserID:", input.UserID)
 
-	updateDTO := dto.UserUpdate{}
-
-	if input.Email != nil {
-		updateDTO.Email = input.Email
-		us.logger.Info("email updated", "UserID:", input.UserID, "NewEmail:", *input.Email)
+	usr := &entity.User{
+		ID:    input.UserID,
+		Email: input.Email,
 	}
 
-	if input.Role != nil {
-		updateDTO.Role = input.Role
-		us.logger.Info("role updated", "UserID:", input.UserID, "NewRole:", *input.Role)
-	}
-
-	if input.Status != nil {
-		updateDTO.Status = input.Status
-		us.logger.Info("status updated", "UserID:", input.UserID, "NewStatus:", *input.Status)
-	}
-
-	if err := us.userRepo.Update(ctx, input.UserID, updateDTO); err != nil {
+	if err := us.userRepo.Update(ctx, usr); err != nil {
 		us.logger.Error("user update failed", "UserID:", input.UserID)
 		return err
 	}
@@ -132,13 +122,11 @@ func (us *UserUseCase) UpdateUser(ctx context.Context, input UserUpdateInput) er
 }
 
 func (us *UserUseCase) ChangePassword(ctx context.Context, input UpdatePassInput) error {
-
+	us.logger.Info("change password attempt", "UserID:", input.UserID)
 	if input.OldPassword == input.NewPassword {
 		us.logger.Error("passwords are same", "UserID:", input.UserID)
 		return errors.ErrPasswordSameAsCurrent
 	}
-
-	updateDTO := dto.UserUpdate{}
 
 	user, err := us.userRepo.FindByID(ctx, input.UserID)
 	if err != nil {
@@ -156,8 +144,11 @@ func (us *UserUseCase) ChangePassword(ctx context.Context, input UpdatePassInput
 		return err
 	}
 
-	updateDTO.Password = &hashedPassword
-	if err := us.userRepo.Update(ctx, input.UserID, updateDTO); err != nil {
+	usr := &entity.User{
+		ID:       user.ID,
+		Password: hashedPassword,
+	}
+	if err := us.userRepo.Update(ctx, usr); err != nil {
 		us.logger.Error("user update failed", "UserID:", input.UserID, "Error:", err)
 		return err
 	}
@@ -184,4 +175,38 @@ func (us *UserUseCase) ChangePassword(ctx context.Context, input UpdatePassInput
 	us.logger.Info("password updated and sessions removed", "UserID:", input.UserID)
 	return nil
 
+}
+
+func (us *UserUseCase) ChangeRole(ctx context.Context, input UpdateRoleInput) error {
+	us.logger.Info("change role attempt", "UserID:", input.UserID)
+	usr := &entity.User{
+		ID:   input.UserID,
+		Role: input.Role,
+	}
+	if err := us.userRepo.Update(ctx, usr); err != nil {
+		us.logger.Error("change user role faild", "user_id", input.UserID)
+		return err
+	}
+	if err := us.userCache.ClearCache(ctx, input.UserID); err != nil {
+		us.logger.Error("clear user cache faild", "user_id", input.UserID)
+	}
+	us.logger.Info("user role changed successfully", "UserID:", input.UserID)
+	return nil
+}
+
+func (us *UserUseCase) ChangeStatus(ctx context.Context, input UpdateStatusInput) error {
+	us.logger.Info("change status attempt", "UserID:", input.UserID)
+	usr := &entity.User{
+		ID:     input.UserID,
+		Status: input.Status,
+	}
+	if err := us.userRepo.Update(ctx, usr); err != nil {
+		us.logger.Error("change user status faild", "user_id", input.UserID)
+		return err
+	}
+	if err := us.userCache.ClearCache(ctx, input.UserID); err != nil {
+		us.logger.Error("clear user cache faild", "user_id", input.UserID)
+	}
+	us.logger.Info("user status changed successfully", "UserID:", input.UserID)
+	return nil
 }

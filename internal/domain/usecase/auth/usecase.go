@@ -12,7 +12,6 @@ import (
 	"github.com/motixo/goat-api/internal/domain/usecase/session"
 	"github.com/motixo/goat-api/internal/domain/usecase/user"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
-	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type AuthUseCase struct {
@@ -21,7 +20,7 @@ type AuthUseCase struct {
 	ulidGen        service.IDGenerator
 	passwordHasher service.PasswordHasher
 	jwtService     service.JWTService
-	logger         logger.Logger
+	logger         service.Logger
 	accessTTL      time.Duration
 	refreshTTL     time.Duration
 	sessionTTL     time.Duration
@@ -33,7 +32,7 @@ func NewUsecase(
 	passwordHasher service.PasswordHasher,
 	jwtService service.JWTService,
 	ulidGen service.IDGenerator,
-	logger logger.Logger,
+	logger service.Logger,
 	accessTTL AccessTTL,
 	refreshTTL RefreshTTL,
 	sessionTTL SessionTTL,
@@ -60,7 +59,7 @@ func (us *AuthUseCase) Signup(ctx context.Context, input RegisterInput) (Registe
 		return RegisterOutput{}, err
 	}
 
-	rq := &entity.User{
+	usr := &entity.User{
 		ID:        uuid.New().String(),
 		Email:     input.Email,
 		Password:  hashedPassword,
@@ -69,19 +68,19 @@ func (us *AuthUseCase) Signup(ctx context.Context, input RegisterInput) (Registe
 		CreatedAt: time.Now().UTC(),
 	}
 
-	err = us.userRepo.Create(ctx, rq)
+	err = us.userRepo.Create(ctx, usr)
 	if err != nil {
 		us.logger.Error("failed to create user", "email", input.Email, "error", err)
 		return RegisterOutput{}, err
 	}
 
-	us.logger.Info("user registered successfully", "userID", rq.ID, "email", rq.Email)
+	us.logger.Info("user registered successfully", "userID", usr.ID, "email", usr.Email)
 	return RegisterOutput{
 		User: user.UserResponse{
-			ID:        rq.ID,
-			Email:     rq.Email,
-			Role:      rq.Role.String(),
-			CreatedAt: rq.CreatedAt,
+			ID:        usr.ID,
+			Email:     usr.Email,
+			Role:      usr.Role.String(),
+			CreatedAt: usr.CreatedAt,
 		},
 	}, nil
 }

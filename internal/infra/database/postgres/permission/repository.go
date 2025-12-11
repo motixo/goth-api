@@ -8,13 +8,15 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/motixo/goat-api/internal/domain/entity"
+	"github.com/motixo/goat-api/internal/domain/repository"
+	"github.com/motixo/goat-api/internal/domain/valueobject"
 )
 
 type Repository struct {
 	db *sqlx.DB
 }
 
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(db *sqlx.DB) repository.PermissionRepository {
 	return &Repository{db: db}
 }
 
@@ -27,21 +29,7 @@ func (p *Repository) Create(ctx context.Context, u *entity.Permission) error {
 	return err
 }
 
-func (r *Repository) GetByRoleID(ctx context.Context, roleID int8) ([]*entity.Permission, error) {
-	var permission []*entity.Permission
-	query := `
-        SELECT id, role_id, action, created_at
-        FROM permissions
-        WHERE role_id = $1
-    `
-	err := r.db.SelectContext(ctx, &permission, query, roleID)
-	if err != nil {
-		return nil, err
-	}
-	return permission, nil
-}
-
-func (r *Repository) GetAll(ctx context.Context, offset, limit int) ([]*entity.Permission, int64, error) {
+func (r *Repository) List(ctx context.Context, offset, limit int) ([]*entity.Permission, int64, error) {
 	var permission []*entity.Permission
 	var total int64
 
@@ -62,14 +50,28 @@ func (r *Repository) GetAll(ctx context.Context, offset, limit int) ([]*entity.P
 	return permission, total, nil
 }
 
-func (r *Repository) Delete(ctx context.Context, permissionID string) (*int8, error) {
+func (r *Repository) GetByRoleID(ctx context.Context, role valueobject.UserRole) ([]*entity.Permission, error) {
+	var permission []*entity.Permission
+	query := `
+        SELECT id, role_id, action, created_at
+        FROM permissions
+        WHERE role_id = $1
+    `
+	err := r.db.SelectContext(ctx, &permission, query, int8(role))
+	if err != nil {
+		return nil, err
+	}
+	return permission, nil
+}
+
+func (r *Repository) Delete(ctx context.Context, permissionID string) (int8, error) {
 	var roleID int8
 	err := r.db.QueryRowxContext(ctx, "DELETE FROM permissions WHERE id = $1 RETURNING role_id", permissionID).Scan(&roleID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, fmt.Errorf("permission not found")
+			return 0, fmt.Errorf("permission not found")
 		}
-		return nil, err
+		return 0, err
 	}
-	return &roleID, nil
+	return roleID, nil
 }

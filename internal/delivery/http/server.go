@@ -5,13 +5,11 @@ import (
 	"github.com/motixo/goat-api/internal/delivery/http/handlers"
 	"github.com/motixo/goat-api/internal/delivery/http/middleware"
 	"github.com/motixo/goat-api/internal/delivery/http/routes"
-	"github.com/motixo/goat-api/internal/domain/repository"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/usecase/auth"
 	"github.com/motixo/goat-api/internal/domain/usecase/permission"
 	"github.com/motixo/goat-api/internal/domain/usecase/session"
 	"github.com/motixo/goat-api/internal/domain/usecase/user"
-	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type Server struct {
@@ -28,16 +26,17 @@ func NewServer(
 	userUC user.UseCase,
 	authUC auth.UseCase,
 	permUC permission.UseCase,
+	permCache service.PermCacheService,
 	sessionUC session.UseCase,
-	roleCache repository.RoleRepository,
-	logger logger.Logger,
+	userCache service.UserCacheService,
+	logger service.Logger,
 	jwtService service.JWTService,
 ) *Server {
 	router := gin.New()
 
 	// Global middleware
-	authMiddleware := middleware.NewAuthMiddleware(jwtService, sessionUC)
-	permMiddleware := middleware.NewPermMiddleware(userUC, permUC, roleCache)
+	authMiddleware := middleware.NewAuthMiddleware(jwtService, sessionUC, userCache)
+	permMiddleware := middleware.NewPermMiddleware(userUC, permCache, userCache)
 	router.Use(middleware.Recovery(logger))
 
 	authHandler := handlers.NewAuthHandler(authUC, logger)

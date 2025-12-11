@@ -17,17 +17,12 @@ func SeedPermissions(db *sqlx.DB) error {
 
 	adminPerm := valueobject.PermFullAccess
 
-	clientPerm := []valueobject.Permission{
-		valueobject.PermUserUpdate,
-		valueobject.PermSessionRead,
-		valueobject.PermSessionDelete,
-	}
+	clientPerm := []valueobject.Permission{}
 
 	operatorPerm := []valueobject.Permission{
 		valueobject.PermUserRead,
 		valueobject.PermUserUpdate,
 		valueobject.PermUserChangeStatus,
-		valueobject.PermSessionRead,
 	}
 
 	tx, err := db.Begin()

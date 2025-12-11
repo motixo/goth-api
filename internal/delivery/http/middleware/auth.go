@@ -9,17 +9,20 @@ import (
 	DomainError "github.com/motixo/goat-api/internal/domain/errors"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/usecase/session"
+	"github.com/motixo/goat-api/internal/domain/valueobject"
 )
 
 type AuthMiddleware struct {
 	sessionUC  session.UseCase
 	jwtService service.JWTService
+	userCache  service.UserCacheService
 }
 
-func NewAuthMiddleware(jwtService service.JWTService, sessionUC session.UseCase) *AuthMiddleware {
+func NewAuthMiddleware(jwtService service.JWTService, sessionUC session.UseCase, userCache service.UserCacheService) *AuthMiddleware {
 	return &AuthMiddleware{
 		jwtService: jwtService,
 		sessionUC:  sessionUC,
+		userCache:  userCache,
 	}
 }
 
@@ -57,6 +60,28 @@ func (m *AuthMiddleware) Required() gin.HandlerFunc {
 		}
 		if !isValid {
 			response.Unauthorized(c, "token has been revoked")
+			c.Abort()
+			return
+		}
+
+		userStatus, err := m.userCache.GetUserStatus(c.Request.Context(), claims.UserID)
+		if err != nil {
+			response.Internal(c)
+			c.Abort()
+			return
+		}
+
+		switch userStatus {
+		case valueobject.StatusInactive:
+			response.Unauthorized(c, "account not activated.")
+			c.Abort()
+			return
+		case valueobject.StatusSuspended:
+			response.Unauthorized(c, "account suspended.")
+			c.Abort()
+			return
+		case valueobject.StatusUnknown:
+			response.Unauthorized(c, "someting went wrong, contact support.")
 			c.Abort()
 			return
 		}

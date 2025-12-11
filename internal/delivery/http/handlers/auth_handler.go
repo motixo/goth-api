@@ -4,16 +4,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/helper"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
+	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/usecase/auth"
-	"github.com/motixo/goat-api/internal/infra/logger"
 )
 
 type AuthHandler struct {
 	usecase auth.UseCase
-	logger  logger.Logger
+	logger  service.Logger
 }
 
-func NewAuthHandler(usecase auth.UseCase, logger logger.Logger) *AuthHandler {
+func NewAuthHandler(usecase auth.UseCase, logger service.Logger) *AuthHandler {
 	return &AuthHandler{
 		usecase: usecase,
 		logger:  logger,
