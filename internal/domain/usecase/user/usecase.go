@@ -88,7 +88,7 @@ func (us *UserUseCase) GetUser(ctx context.Context, userID string) (UserResponse
 	return response, nil
 }
 
-func (us *UserUseCase) GetUserslist(ctx context.Context, actorID string, input GetListInput) ([]UserResponse, int64, error) {
+func (us *UserUseCase) GetUserslist(ctx context.Context, input GetListInput) ([]UserResponse, int64, error) {
 	us.logger.Info("Fetching users List")
 
 	actorRole, err := us.userCache.GetUserRole(ctx, input.ActorID)
@@ -173,6 +173,30 @@ func (us *UserUseCase) DeleteUser(ctx context.Context, userID string) error {
 	}
 
 	us.logger.Info("User deleted successfully", "target_user_id:", userID)
+	return nil
+}
+
+func (us *UserUseCase) UpdateUser(ctx context.Context, input UpdateInput) error {
+	us.logger.Info("update user attempt", "target_id", input.UserID)
+	hashedPassword, err := us.passwordHasher.Hash(ctx, input.Password)
+	if err != nil {
+		us.logger.Error("failed to hash password", "user_id", input.UserID, "error", err)
+		return err
+	}
+
+	usr := entity.User{
+		ID:       input.UserID,
+		Email:    input.Email,
+		Password: hashedPassword,
+		Status:   input.Status,
+		Role:     input.Role,
+	}
+
+	if err := us.userRepo.Update(ctx, &usr); err != nil {
+		us.logger.Error("failed to update user", "user_id", input.UserID, "error", err)
+		return err
+	}
+	us.logger.Info("user updated successfully", "target_id", input.UserID)
 	return nil
 }
 
@@ -262,27 +286,27 @@ func (us *UserUseCase) ChangeRole(ctx context.Context, input UpdateRoleInput) er
 	if err := us.userCache.ClearCache(ctx, input.UserID); err != nil {
 		us.logger.Error("clear user cache faild", "user_id", input.UserID, "error", err)
 	}
-	us.logger.Info("user role changed successfully", "UserID:", input.UserID)
+	us.logger.Info("user role changed successfully", "user_id:", input.UserID)
 	return nil
 }
 
 func (us *UserUseCase) ChangeStatus(ctx context.Context, input UpdateStatusInput) error {
-	us.logger.Info("change status attempt", "user_id", input.UserID, "target_id", input.ActorID)
+	us.logger.Info("change status attempt", "target_id", input.UserID, "actor_id", input.ActorID)
 
 	actorRole, err := us.userCache.GetUserRole(ctx, input.ActorID)
 	if err != nil {
-		us.logger.Error("change user status faild", "user_id", input.UserID, "target_id", input.ActorID, "error", err)
+		us.logger.Error("change user status faild", "target_id", input.UserID, "actor_id", input.ActorID, "error", err)
 		return err
 	}
 
 	userRole, err := us.userCache.GetUserRole(ctx, input.UserID)
 	if err != nil {
-		us.logger.Error("change user status faild", "user_id", input.UserID, "target_id", input.ActorID, "error", err)
+		us.logger.Error("change user status faild", "target_id", input.UserID, "actor_id", input.ActorID, "error", err)
 		return err
 	}
 
 	if !actorRole.CanModifyTargetRole(userRole) {
-		us.logger.Error("user not permission to perform this action", "user_id", input.UserID, "target_id", input.ActorID)
+		us.logger.Error("user not permission to perform this action", "target_id", input.UserID, "actor_id", input.ActorID)
 		return errors.ErrForbidden
 	}
 

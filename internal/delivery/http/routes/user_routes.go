@@ -43,16 +43,20 @@ func RegisterUserRoutes(
 			userHandler.DeleteUser,
 		)
 
-		private.PUT("/change-email", userHandler.ChangeEmail)
+		private.PUT("/:id",
+			permMiddleware.Require(valueobject.PermFullAccess),
+			userHandler.UpdateUser,
+		)
+		private.PATCH("/change-email", userHandler.ChangeEmail)
 
-		private.PUT("/change-password", userHandler.ChangePassword)
+		private.PATCH("/change-password", userHandler.ChangePassword)
 
-		private.PUT("/change-role",
+		private.PATCH("/change-role",
 			permMiddleware.Require(valueobject.PermUserChangeRole),
 			userHandler.ChangeRole,
 		)
 
-		private.PUT("/change-status",
+		private.PATCH("/change-status",
 			permMiddleware.Require(valueobject.PermUserChangeStatus),
 			userHandler.ChangeStatus,
 		)

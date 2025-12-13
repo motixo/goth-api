@@ -22,6 +22,14 @@ type CreateInput struct {
 	Role     valueobject.UserRole   `json:"role" binding:"required"`
 }
 
+type UpdateInput struct {
+	UserID   string
+	Email    string                 `json:"email" validate:"email"`
+	Password string                 `json:"password"`
+	Status   valueobject.UserStatus `json:"status"`
+	Role     valueobject.UserRole   `json:"role"`
+}
+
 type UpdateEmailInput struct {
 	UserID string
 	Email  string `json:"email" binding:"required"`

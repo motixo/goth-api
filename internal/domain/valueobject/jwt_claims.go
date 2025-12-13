@@ -50,8 +50,8 @@ func NewJWTClaims(userID string, sessionID string, tokenType TokenType, jti stri
 		Subject:   string(tokenType),
 		Audience:  []string{TokenAudience},
 		ExpiresAt: expiresAt,
-		IssuedAt:  time.Now(),
-		NotBefore: time.Now(),
+		IssuedAt:  time.Now().UTC(),
+		NotBefore: time.Now().UTC(),
 	}
 
 	return claims, nil
