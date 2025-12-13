@@ -100,7 +100,7 @@ func (r *Repository) Update(ctx context.Context, user *entity.User) error {
 	}
 
 	setClauses = append(setClauses, fmt.Sprintf("updated_at = $%d", argIndex))
-	args = append(args, time.Now())
+	args = append(args, time.Now().UTC())
 	argIndex++
 
 	setClausesStr := strings.Join(setClauses, ", ")

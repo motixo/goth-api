@@ -88,8 +88,7 @@ func (h *UserHandler) GetUserList(c *gin.Context) {
 		vs, _ := valueobject.ParseUserStatus(s)
 		filter.Statuses = append(filter.Statuses, vs)
 	}
-
-	output, total, err := h.usecase.GetUserslist(c, actorID, user.GetListInput{
+	output, total, err := h.usecase.GetUserslist(c, user.GetListInput{
 		ActorID: actorID,
 		Filter:  filter,
 		Offset:  input.Offset(),
@@ -123,6 +122,26 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	response.OK(c, "Deleted")
 }
 
+func (h *UserHandler) UpdateUser(c *gin.Context) {
+	helper.LogRequest(h.logger, c)
+	targetUserID := c.Param("id")
+	var input user.UpdateInput
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		h.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP())
+		response.BadRequest(c, "Invalid request payload")
+		return
+	}
+
+	input.UserID = targetUserID
+	if err := h.usecase.UpdateUser(c, input); err != nil {
+		response.Internal(c)
+		return
+	}
+
+	response.OK(c, "user updated successfully")
+}
+
 func (h *UserHandler) ChangeEmail(c *gin.Context) {
 	helper.LogRequest(h.logger, c)
 
@@ -140,12 +159,8 @@ func (h *UserHandler) ChangeEmail(c *gin.Context) {
 		return
 	}
 
-	err := h.usecase.ChangeEmail(c, user.UpdateEmailInput{
-		UserID: userID,
-		Email:  input.Email,
-	})
-
-	if err != nil {
+	input.UserID = userID
+	if err := h.usecase.ChangeEmail(c, input); err != nil {
 		response.Internal(c)
 		return
 	}
@@ -168,10 +183,9 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 		response.BadRequest(c, "Invalid request payload")
 		return
 	}
-	input.UserID = userID
-	err := h.usecase.ChangePassword(c, input)
 
-	if err != nil {
+	input.UserID = userID
+	if err := h.usecase.ChangePassword(c, input); err != nil {
 		if err == errors.ErrInvalidPassword {
 			response.BadRequest(c, "current password is incorrect")
 			return
@@ -198,12 +212,7 @@ func (h *UserHandler) ChangeRole(c *gin.Context) {
 		return
 	}
 
-	err := h.usecase.ChangeRole(c, user.UpdateRoleInput{
-		UserID: input.UserID,
-		Role:   input.Role,
-	})
-
-	if err != nil {
+	if err := h.usecase.ChangeRole(c, input); err != nil {
 		response.Internal(c)
 		return
 	}
@@ -228,13 +237,8 @@ func (h *UserHandler) ChangeStatus(c *gin.Context) {
 		return
 	}
 
-	err := h.usecase.ChangeStatus(c, user.UpdateStatusInput{
-		UserID:  input.UserID,
-		ActorID: actorID,
-		Status:  input.Status,
-	})
-
-	if err != nil {
+	input.ActorID = actorID
+	if err := h.usecase.ChangeStatus(c, input); err != nil {
 		response.DomainError(c, err)
 		return
 	}
