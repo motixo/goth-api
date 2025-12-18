@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/motixo/goat-api/internal/domain/entity"
 	"github.com/motixo/goat-api/internal/domain/errors"
+	"github.com/motixo/goat-api/internal/domain/event"
 	"github.com/motixo/goat-api/internal/domain/repository"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
@@ -17,6 +18,7 @@ type UserUseCase struct {
 	passwordHasher service.PasswordHasher
 	userCache      service.UserCacheService
 	sessionRepo    repository.SessionRepository
+	publisher      event.Publisher
 	logger         service.Logger
 }
 
@@ -26,12 +28,14 @@ func NewUsecase(
 	logger service.Logger,
 	sessionRepo repository.SessionRepository,
 	userCache service.UserCacheService,
+	publisher event.Publisher,
 ) UseCase {
 	return &UserUseCase{
 		userRepo:       r,
 		passwordHasher: passwordHasher,
 		sessionRepo:    sessionRepo,
 		userCache:      userCache,
+		publisher:      publisher,
 		logger:         logger,
 	}
 }
@@ -283,9 +287,12 @@ func (us *UserUseCase) ChangeRole(ctx context.Context, input UpdateRoleInput) er
 		us.logger.Error("change user role faild", "user_id", input.UserID, "error", err)
 		return err
 	}
-	if err := us.userCache.ClearCache(ctx, input.UserID); err != nil {
-		us.logger.Error("clear user cache faild", "user_id", input.UserID, "error", err)
-	}
+
+	us.publisher.Publish(ctx, event.UserUpdatedEvent{
+		UserID:    usr.ID,
+		UpdatedBy: "gfgdgdfgd",
+	})
+
 	us.logger.Info("user role changed successfully", "user_id:", input.UserID)
 	return nil
 }
@@ -318,9 +325,12 @@ func (us *UserUseCase) ChangeStatus(ctx context.Context, input UpdateStatusInput
 		us.logger.Error("change user status faild", "user_id", input.UserID, "error", err)
 		return err
 	}
-	if err := us.userCache.ClearCache(ctx, input.UserID); err != nil {
-		us.logger.Error("clear user cache faild", "user_id", input.UserID, "error", err)
-	}
+
+	us.publisher.Publish(ctx, event.UserUpdatedEvent{
+		UserID:    usr.ID,
+		UpdatedBy: input.ActorID,
+	})
+
 	us.logger.Info("user status changed successfully", "user_id", input.UserID)
 	return nil
 }

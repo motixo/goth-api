@@ -8,8 +8,17 @@ import (
 	"github.com/google/wire"
 	"github.com/motixo/goat-api/internal/delivery/http"
 	"github.com/motixo/goat-api/internal/di"
+	"github.com/motixo/goat-api/internal/infra/event"
 )
 
-func InitializeApp() (*http.Server, error) {
-	panic(wire.Build(di.ProviderSet))
+type AppContext struct {
+	Server   *http.Server
+	EventBus *event.InMemoryPublisher
+}
+
+func InitializeApp() (*AppContext, error) {
+	panic(wire.Build(
+		di.ProviderSet,
+		wire.Struct(new(AppContext), "Server", "EventBus"),
+	))
 }

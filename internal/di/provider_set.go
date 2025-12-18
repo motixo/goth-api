@@ -1,6 +1,8 @@
 package di
 
 import (
+	"context"
+	"reflect"
 	"time"
 
 	"github.com/google/wire"
@@ -12,7 +14,7 @@ import (
 	"github.com/motixo/goat-api/internal/delivery/http/middleware"
 
 	// Domain layer
-
+	domainEvent "github.com/motixo/goat-api/internal/domain/event"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/usecase/auth"
 	"github.com/motixo/goat-api/internal/domain/usecase/permission"
@@ -26,6 +28,7 @@ import (
 	"github.com/motixo/goat-api/internal/infra/database/postgres"
 	postgresPermission "github.com/motixo/goat-api/internal/infra/database/postgres/permission"
 	postgresUser "github.com/motixo/goat-api/internal/infra/database/postgres/user"
+	"github.com/motixo/goat-api/internal/infra/event"
 	"github.com/motixo/goat-api/internal/infra/logger"
 	redisSession "github.com/motixo/goat-api/internal/infra/storage/redis/session"
 )
@@ -38,6 +41,9 @@ var infraSet = wire.NewSet(
 	wire.Bind(new(service.Logger), new(*logger.ZapLogger)),
 	authInfra.NewPasswordService,
 	postgres.NewDatabase,
+
+	ProvideConfiguredEventBus,
+	wire.Bind(new(domainEvent.Publisher), new(*event.InMemoryPublisher)),
 )
 
 // Repository providers
@@ -103,7 +109,6 @@ func ProvideRedisClient(cfg *config.Config) *redis.Client {
 	})
 }
 
-// Configuration providers with unique types
 func ProvideAccessTTL(cfg *config.Config) auth.AccessTTL {
 	return auth.AccessTTL(cfg.JWTExpiration)
 }
@@ -116,7 +121,6 @@ func ProvideSessionTTL(cfg *config.Config) auth.SessionTTL {
 	return auth.SessionTTL(cfg.SessionExpiration)
 }
 
-// Service providers
 func NewJWTManager(cfg *config.Config) *authInfra.JWTManager {
 	return authInfra.NewJWTManager(cfg.JWTSecret)
 }
@@ -131,4 +135,38 @@ func NewUserCache(redisClient *redis.Client) *usercache.Cache {
 
 func NewPermissionCache(redisClient *redis.Client) *permcache.Cache {
 	return permcache.NewCache(redisClient, 24*time.Hour)
+}
+
+func ProvideConfiguredEventBus(
+	logger service.Logger,
+	userCacheRepo usercache.CachedRepository,
+	permCacheRepo permcache.CachedRepository,
+) (*event.InMemoryPublisher, error) {
+	bus := event.NewInMemoryPublisher(logger)
+
+	// Register UserUpdatedEvent handler
+	bus.RegisterHandler(
+		reflect.TypeOf(domainEvent.UserUpdatedEvent{}),
+		func(ctx context.Context, e any) error {
+			evt, ok := e.(domainEvent.UserUpdatedEvent)
+			if !ok {
+				return nil // or log
+			}
+			return userCacheRepo.ClearCache(ctx, evt.UserID)
+		},
+	)
+
+	// Register PermissionUpdatedEvent handler
+	bus.RegisterHandler(
+		reflect.TypeOf(domainEvent.PermissionUpdatedEvent{}),
+		func(ctx context.Context, e any) error {
+			evt, ok := e.(domainEvent.PermissionUpdatedEvent)
+			if !ok {
+				return nil
+			}
+			return permCacheRepo.ClearCache(ctx, evt.Role)
+		},
+	)
+
+	return bus, nil
 }

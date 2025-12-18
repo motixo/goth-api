@@ -1,6 +1,9 @@
 package http
 
 import (
+	"context"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/handlers"
 	"github.com/motixo/goat-api/internal/delivery/http/middleware"
@@ -14,6 +17,7 @@ import (
 
 type Server struct {
 	engine            *gin.Engine
+	httpServer        *http.Server
 	authHandler       *handlers.AuthHandler
 	userHandler       *handlers.UserHandler
 	sessionHandler    *handlers.SessionHandler
@@ -44,8 +48,13 @@ func NewServer(
 	userHandler := handlers.NewUserHandler(userUC, logger)
 	permissionHandler := handlers.NewPermissionHandler(permUC, logger)
 
+	httpServerInstance := &http.Server{
+		Handler: router,
+	}
+
 	server := &Server{
 		engine:            router,
+		httpServer:        httpServerInstance,
 		authHandler:       authHandler,
 		userHandler:       userHandler,
 		sessionHandler:    sessionHandler,
@@ -73,5 +82,14 @@ func (s *Server) setupRoutes() {
 }
 
 func (s *Server) Run(addr string) error {
-	return s.engine.Run(addr)
+	s.httpServer.Addr = addr
+
+	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.httpServer.Shutdown(ctx)
 }
