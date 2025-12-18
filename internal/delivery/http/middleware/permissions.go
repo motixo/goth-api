@@ -68,11 +68,9 @@ func (m *PermMiddleware) Require(requiredPerm valueobject.Permission) gin.Handle
 }
 
 func hasPermission(perms []*entity.Permission, required valueobject.Permission) bool {
-	requiredStr := string(required)
-	fullAccessStr := string(valueobject.PermFullAccess)
 
 	for _, p := range perms {
-		if p.Action == requiredStr || p.Action == fullAccessStr {
+		if p.Action == required || p.Action == valueobject.PermFullAccess {
 			return true
 		}
 	}

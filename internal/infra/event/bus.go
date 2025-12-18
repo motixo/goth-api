@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"sync"
 	"time"
@@ -35,17 +34,6 @@ func (p *InMemoryPublisher) RegisterHandler(eventType reflect.Type, handler Hand
 func (p *InMemoryPublisher) Publish(ctx context.Context, event any) error {
 
 	eventType := reflect.TypeOf(event)
-	fmt.Print("Registered event type",
-		"type_string", eventType.String(),
-		"pkg_path", eventType.PkgPath(),
-		"name", eventType.Name())
-	if eventType == nil {
-		return fmt.Errorf("cannot publish nil event")
-	}
-	if eventType.Kind() == reflect.Ptr {
-		return fmt.Errorf("event must be a value, not a pointer: %T", event)
-	}
-
 	p.mu.RLock()
 	handlers, exists := p.handlers[eventType]
 	p.mu.RUnlock()

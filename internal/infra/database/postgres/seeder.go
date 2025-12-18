@@ -32,9 +32,9 @@ func SeedPermissions(db *sqlx.DB) error {
 	defer tx.Rollback()
 
 	insertStmt := `
-    INSERT INTO permissions (id, role_id, action, created_at)
+    INSERT INTO permissions (id, role, action, created_at)
     VALUES (gen_random_uuid(), $1, $2, CURRENT_TIMESTAMP AT TIME ZONE 'UTC')
-    ON CONFLICT (role_id, action) DO NOTHING;
+    ON CONFLICT (role, action) DO NOTHING;
 	`
 
 	// Admin

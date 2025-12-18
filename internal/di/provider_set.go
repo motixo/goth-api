@@ -41,6 +41,10 @@ var infraSet = wire.NewSet(
 	wire.Bind(new(service.Logger), new(*logger.ZapLogger)),
 	authInfra.NewPasswordService,
 	postgres.NewDatabase,
+	NewUserCache,
+	NewPermissionCache,
+	usercache.NewCachedRepository,
+	permcache.NewCachedRepository,
 
 	ProvideConfiguredEventBus,
 	wire.Bind(new(domainEvent.Publisher), new(*event.InMemoryPublisher)),
@@ -57,10 +61,6 @@ var RepositorySet = wire.NewSet(
 var ServiceSet = wire.NewSet(
 	service.NewULIDGenerator,
 	NewJWTManager,
-	NewUserCache,
-	NewPermissionCache,
-	usercache.NewCachedRepository,
-	permcache.NewCachedRepository,
 	wire.Bind(new(service.JWTService), new(*authInfra.JWTManager)),
 )
 
@@ -139,8 +139,8 @@ func NewPermissionCache(redisClient *redis.Client) *permcache.Cache {
 
 func ProvideConfiguredEventBus(
 	logger service.Logger,
-	userCacheRepo usercache.CachedRepository,
-	permCacheRepo permcache.CachedRepository,
+	userCacheRepo service.UserCacheService,
+	permCacheRepo service.PermCacheService,
 ) (*event.InMemoryPublisher, error) {
 	bus := event.NewInMemoryPublisher(logger)
 

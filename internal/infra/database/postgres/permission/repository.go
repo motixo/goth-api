@@ -22,8 +22,8 @@ func NewRepository(db *sqlx.DB) repository.PermissionRepository {
 
 func (p *Repository) Create(ctx context.Context, u *entity.Permission) error {
 	query := `
-        INSERT INTO permissions (id, role_id, action, created_at)
-        VALUES (:id, :role_id, :action, :created_at)
+        INSERT INTO permissions (id, role, action, created_at)
+        VALUES (:id, :role, :action, :created_at)
     `
 	_, err := p.db.NamedExecContext(ctx, query, u)
 	return err
@@ -38,9 +38,9 @@ func (r *Repository) List(ctx context.Context, offset, limit int) ([]*entity.Per
 	}
 
 	query := `
-        SELECT id, role_id, action, created_at
+        SELECT id, role, action, created_at
         FROM permissions
-		ORDER BY role_id DESC
+		ORDER BY role DESC
 		LIMIT $1 OFFSET $2
     `
 	err := r.db.SelectContext(ctx, &permission, query, limit, offset)
@@ -53,9 +53,9 @@ func (r *Repository) List(ctx context.Context, offset, limit int) ([]*entity.Per
 func (r *Repository) GetByRoleID(ctx context.Context, role valueobject.UserRole) ([]*entity.Permission, error) {
 	var permission []*entity.Permission
 	query := `
-        SELECT id, role_id, action, created_at
+        SELECT id, role, action, created_at
         FROM permissions
-        WHERE role_id = $1
+        WHERE role = $1
     `
 	err := r.db.SelectContext(ctx, &permission, query, int8(role))
 	if err != nil {
@@ -66,7 +66,7 @@ func (r *Repository) GetByRoleID(ctx context.Context, role valueobject.UserRole)
 
 func (r *Repository) Delete(ctx context.Context, permissionID string) (int8, error) {
 	var roleID int8
-	err := r.db.QueryRowxContext(ctx, "DELETE FROM permissions WHERE id = $1 RETURNING role_id", permissionID).Scan(&roleID)
+	err := r.db.QueryRowxContext(ctx, "DELETE FROM permissions WHERE id = $1 RETURNING role", permissionID).Scan(&roleID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf("permission not found")

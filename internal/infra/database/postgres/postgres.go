@@ -28,11 +28,11 @@ func NewDatabase(cfg *config.Config, logger service.Logger, passwordSrv service.
 	permissionSchema := `
 	CREATE TABLE IF NOT EXISTS permissions (
 		id UUID PRIMARY KEY,
-		role_id SMALLINT NOT NULL,
+		role SMALLINT NOT NULL,
 		action TEXT NOT NULL,
 		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMP NULL,
-		CONSTRAINT unique_role_action UNIQUE(role_id, action)
+		CONSTRAINT unique_role_action UNIQUE(role, action)
 	);`
 
 	if _, err := db.Exec(userSchema); err != nil {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/motixo/goat-api/internal/domain/entity"
+	"github.com/motixo/goat-api/internal/domain/event"
 	"github.com/motixo/goat-api/internal/domain/repository"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
@@ -14,34 +15,42 @@ import (
 type PermissionUseCase struct {
 	permissionRepo repository.PermissionRepository
 	ulidGen        service.IDGenerator
+	publisher      event.Publisher
 	logger         service.Logger
 }
 
 func NewUsecase(
 	p repository.PermissionRepository,
 	ulidGen service.IDGenerator,
+	publisher event.Publisher,
 	logger service.Logger,
 ) UseCase {
 	return &PermissionUseCase{
 		permissionRepo: p,
 		logger:         logger,
+		publisher:      publisher,
 		ulidGen:        ulidGen,
 	}
 }
 
 func (us *PermissionUseCase) Create(ctx context.Context, input CreateInput) (*entity.Permission, error) {
-	us.logger.Info("create permission attempt", "role_id", input.RoleID, "action", input.Action)
+	us.logger.Info("create permission attempt", "role", input.Role.String(), "action", input.Action)
 	perm := entity.Permission{
 		ID:        uuid.New().String(),
-		RoleID:    input.RoleID,
+		Role:      input.Role,
 		Action:    input.Action,
 		CreatedAt: time.Now().UTC(),
 	}
 	if err := us.permissionRepo.Create(ctx, &perm); err != nil {
-		us.logger.Error("failed to create permission", "role_id", input.RoleID, "action", input.Action, "error", err)
+		us.logger.Error("failed to create permission", "role", input.Role.String(), "action", input.Action, "error", err)
 		return nil, err
 	}
-	us.logger.Info("permission created successfully", "role_id", input.RoleID, "action", input.Action)
+
+	us.publisher.Publish(ctx, event.PermissionUpdatedEvent{
+		Role: input.Role,
+	})
+
+	us.logger.Info("permission created successfully", "role", input.Role.String(), "action", input.Action)
 	return &perm, nil
 }
 
@@ -57,8 +66,8 @@ func (us *PermissionUseCase) GetPermissions(ctx context.Context, offset, limit i
 	for _, perm := range perms {
 		r := &PermissionResponse{
 			ID:        perm.ID,
-			Role:      valueobject.UserRole(perm.RoleID).String(),
-			Action:    perm.Action,
+			Role:      perm.Role.String(),
+			Action:    perm.Action.String(),
 			CreatedAt: perm.CreatedAt,
 		}
 		response = append(response, r)
@@ -79,8 +88,8 @@ func (us *PermissionUseCase) GetPermissionsByRole(ctx context.Context, role valu
 	for _, perm := range perms {
 		r := &PermissionResponse{
 			ID:        perm.ID,
-			Role:      valueobject.UserRole(perm.RoleID).String(),
-			Action:    perm.Action,
+			Role:      perm.Role.String(),
+			Action:    perm.Action.String(),
 			CreatedAt: perm.CreatedAt,
 		}
 		response = append(response, r)
@@ -91,9 +100,15 @@ func (us *PermissionUseCase) GetPermissionsByRole(ctx context.Context, role valu
 
 func (us *PermissionUseCase) Delete(ctx context.Context, permissionID string) error {
 	us.logger.Info("delete permission attempt", "permission_id", permissionID)
-	if _, err := us.permissionRepo.Delete(ctx, permissionID); err != nil {
+	roleID, err := us.permissionRepo.Delete(ctx, permissionID)
+	if err != nil {
 		us.logger.Error("failed to create permission", "permission_id", permissionID, "error", err)
 		return err
 	}
+	us.publisher.Publish(ctx, event.PermissionUpdatedEvent{
+		Role: valueobject.UserRole(roleID),
+	})
+
+	us.logger.Info("permission deleted successfully", "permission_id", permissionID)
 	return nil
 }

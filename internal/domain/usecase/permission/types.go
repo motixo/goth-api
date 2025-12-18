@@ -1,10 +1,14 @@
 package permission
 
-import "time"
+import (
+	"time"
+
+	"github.com/motixo/goat-api/internal/domain/valueobject"
+)
 
 type CreateInput struct {
-	RoleID int8   `json:"role_id"`
-	Action string `json:"action"`
+	Role   valueobject.UserRole   `json:"role"`
+	Action valueobject.Permission `json:"action"`
 }
 
 type PermissionResponse struct {

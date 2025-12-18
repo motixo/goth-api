@@ -69,6 +69,12 @@ func (h *PermissionHandler) CreatePermissin(c *gin.Context) {
 		response.BadRequest(c, "Invalid request payload")
 		return
 	}
+	if input.Role == valueobject.RoleUnknown {
+		h.logger.Warn("invalid request payload", "endpoint", c.FullPath(), "ip", c.ClientIP(), "device", c.GetHeader("User-Agent"))
+		response.BadRequest(c, "Invalid request payload")
+		return
+	}
+
 	output, err := h.usecase.Create(c, input)
 	if err != nil {
 		response.Internal(c)

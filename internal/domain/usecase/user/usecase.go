@@ -172,9 +172,9 @@ func (us *UserUseCase) DeleteUser(ctx context.Context, userID string) error {
 		return nil
 	}
 
-	if err := us.userCache.ClearCache(ctx, userID); err != nil {
-		us.logger.Error("clear user cache faild", "user_id", userID, "error", err)
-	}
+	us.publisher.Publish(ctx, event.UserUpdatedEvent{
+		UserID: userID,
+	})
 
 	us.logger.Info("User deleted successfully", "target_user_id:", userID)
 	return nil
@@ -289,8 +289,7 @@ func (us *UserUseCase) ChangeRole(ctx context.Context, input UpdateRoleInput) er
 	}
 
 	us.publisher.Publish(ctx, event.UserUpdatedEvent{
-		UserID:    usr.ID,
-		UpdatedBy: "gfgdgdfgd",
+		UserID: usr.ID,
 	})
 
 	us.logger.Info("user role changed successfully", "user_id:", input.UserID)
