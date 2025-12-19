@@ -7,6 +7,7 @@
   <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
   <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
   <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
+  <a href="https://github.com/motixo/goat-api/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-purple" alt="License"></a>
 </p>
 
 GOAT API is a **production-ready**, **secure**, and **scalable** backend application built with Go, following Clean Architecture principles. It provides a robust foundation for modern web applications with:
@@ -46,7 +47,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - **Comprehensive Testing**: Unit tests with 100% domain coverage
 - **Code Quality**: Linting and static analysis ready
 
-## 🏗️ Architecture
+## 📐 Architecture
 
 ```
 ┌─────────────────┐
@@ -75,7 +76,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 
 ## 🌐 API Endpoints
 
-### 🔐 Authentication
+### Authentication
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/api/v1/auth/login` | User login with email/password |
@@ -83,7 +84,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 | `POST` | `/api/v1/auth/refresh` | Refresh access token |
 | `POST` | `/api/v1/auth/logout` | Revoke current session |
 
-### 👤 User Management
+### User Management
 | Method | Endpoint | Description | Permissions |
 |--------|----------|-------------|-------------|
 | `GET` | `/api/v1/user` | Get current user profile | Authenticated |
@@ -96,13 +97,13 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 | `DELETE` | `/api/v1/user` | Delete own account | Authenticated |
 | `DELETE` | `/api/v1/user/:id` | Delete user | `user:delete` |
 
-### 📱 Session Management
+### Session Management
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/v1/sessions` | List all active sessions |
 | `DELETE` | `/api/v1/sessions` | Revoke sessions |
 
-### 🛡️ Permission Management
+### Permission Management
 | Method | Endpoint | Description | Permissions |
 |--------|----------|-------------|-------------|
 | `GET` | `/api/v1/permission` | List all permissions | `full_access` |
@@ -110,7 +111,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 | `POST` | `/api/v1/permission` | Create new permission | `full_access` |
 | `DELETE` | `/api/v1/permission/:id` | Delete permission | `full_access` |
 
-### 📊 Infrastructure Endpoints
+### Infrastructure Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `api/health` | Health check endpoint |
@@ -231,9 +232,9 @@ docker run -p 8080:8080 \
   goat-api
 ```
 
-## 🤝 Support
+## Support
 
 If you encounter any issues or have questions:
 
-- 🐞 **File an issue**: [GitHub Issues](https://github.com/motixo/goat-api/issues)
-- 📚 **Documentation**: This README contains comprehensive setup and usage information
+- **File an issue**: [GitHub Issues](https://github.com/motixo/goat-api/issues)
+- **Documentation**: This README contains comprehensive setup and usage information
