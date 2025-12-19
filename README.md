@@ -1,19 +1,22 @@
-<p align="left">
-  <img src="https://raw.githubusercontent.com/motixo/goat-api/refs/heads/main/assets/mascot.png" alt="GOAT Mascot" width="200">
-</p>
-
-<h1 align="left">GOAT API</h1>
-
-<p align="left">
-  <strong>A production-grade Go backend built on Clean Architecture</strong>
-</p>
-
-<p align="left">
-  <a href="#features"><img src="https://img.shields.io/badge/Go-1.21%2B-blue?logo=go" alt="Go Version"></a>
-  <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
-  <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
-  <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
-</p>
+<div align="left">
+  <div style="display: flex; align-items: center; justify-content: center; gap: 40px; max-width: 1200px; margin: 0 auto;">
+    <div style="text-align: left; flex: 1; min-width: 300px;">
+      <h1>GOAT API</h1>
+      <p>
+        <strong>A production-grade Go backend built on Clean Architecture</strong>
+      </p>
+      <p>
+        <a href="#features"><img src="https://img.shields.io/badge/Go-1.21%2B-blue?logo=go" alt="Go Version"></a>
+        <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
+        <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
+        <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
+      </p>
+    </div>
+    <div style="flex: 0 0 auto;">
+      <img src="https://raw.githubusercontent.com/motixo/goat-api/refs/heads/main/assets/mascot.png" alt="GOAT Mascot" width="250" style="display: block;">
+    </div>
+  </div>
+</div>
 
 ---
 
@@ -108,7 +111,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/v1/sessions` | List all active sessions |
-| `DELETE` | `/api/v1/sessions` | Revoke all sessions |
+| `DELETE` | `/api/v1/sessions` | Revoke sessions |
 
 ### 🛡️ Permission Management
 | Method | Endpoint | Description | Permissions |
@@ -244,5 +247,4 @@ docker run -p 8080:8080 \
 If you encounter any issues or have questions:
 
 - 🐞 **File an issue**: [GitHub Issues](https://github.com/motixo/goat-api/issues)
-- 📧 **Contact**: Check the repository for maintainer contact information
 - 📚 **Documentation**: This README contains comprehensive setup and usage information
