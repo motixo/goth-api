@@ -1,26 +1,13 @@
-<div align="left">
-  <div style="display: flex; align-items: center; justify-content: center; gap: 40px; max-width: 1200px; margin: 0 auto;">
-    <div style="text-align: left; flex: 1; min-width: 300px;">
-      <h1>GOAT API</h1>
-      <p>
-        <strong>A production-grade Go backend built on Clean Architecture</strong>
-      </p>
-      <p>
-        <a href="#features"><img src="https://img.shields.io/badge/Go-1.21%2B-blue?logo=go" alt="Go Version"></a>
-        <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
-        <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
-        <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
-      </p>
-    </div>
-    <div style="flex: 0 0 auto;">
-      <img src="https://raw.githubusercontent.com/motixo/goat-api/refs/heads/main/assets/mascot.png" alt="GOAT Mascot" width="250" style="display: block;">
-    </div>
-  </div>
-</div>
+<img src="https://raw.githubusercontent.com/motixo/goat-api/refs/heads/main/assets/mascot.png" align="right" width="250" alt="GOAT Mascot">
 
----
+# GOAT API
 
-## 🚀 Overview
+<p>
+  <a href="#features"><img src="https://img.shields.io/badge/Go-1.21%2B-blue?logo=go" alt="Go Version"></a>
+  <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
+  <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
+  <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
+</p>
 
 GOAT API is a **production-ready**, **secure**, and **scalable** backend application built with Go, following Clean Architecture principles. It provides a robust foundation for modern web applications with:
 
@@ -29,6 +16,8 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - 🛡️ **Fine-grained permission system** with role-based access control
 - 📊 **Comprehensive observability** with Prometheus metrics
 - 🧪 **Testable architecture** with dependency injection
+
+<br clear="right" />
 
 ## ✨ Features
 
