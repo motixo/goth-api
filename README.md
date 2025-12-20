@@ -15,7 +15,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - 🔐 **Secure authentication** with JWT and refresh tokens
 - ⚡ **High-performance session management** with Redis
 - 🛡️ **Fine-grained permission system** with role-based access control
-- 🚀 **Advanced Rate Limiting** with Sliding Window Log algorithm
+- ✋ **Advanced Rate Limiting** with Sliding Window Log algorithm
 - 📊 **Comprehensive observability** with Prometheus metrics
 - 🧪 **Testable architecture** with dependency injection
 
@@ -30,10 +30,9 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - **Dependency Injection**: Compile-time DI with Google Wire
 
 ### Rate Limiting
-The API uses a **Redis Sliding Window** strategy to prevent brute-force attacks and resource abuse. 
-- **Auth Limits**: Tight constraints on login/signup endpoints.
-- **Global Limits**: Configurable per-IP or per-User throttling via middleware.
-- **Atomic Operations**: Powered by Redis Lua scripts to prevent race conditions.
+- **Redis Sliding Window strategy**: to prevent brute-force attacks and resource abuse.
+- **Auth Limits**: Tight constraints on login/signup endpoints
+- **Global Limits**: Configurable per-IP or per-User throttling via middleware
 
 
 ### Authentication & Security
@@ -45,6 +44,7 @@ The API uses a **Redis Sliding Window** strategy to prevent brute-force attacks 
 
 ### Performance & Observability
 - **Redis Caching**: Permission and user data caching for reduced database load
+- **Atomic Operations**: Powered by Redis Lua scripts to prevent race conditions
 - **Prometheus Metrics**: Comprehensive monitoring of HTTP, DB, cache, and business operations
 - **Structured Logging**: Zap logger with contextual information
 - **Graceful Shutdown**: Proper signal handling for zero-downtime deployments
@@ -52,7 +52,6 @@ The API uses a **Redis Sliding Window** strategy to prevent brute-force attacks 
 ### Developer Experience
 - **Docker Support**: Containerized deployment with multi-stage builds
 - **Makefile Automation**: One-command build, test, and run
-- **Comprehensive Testing**: Unit tests with 100% domain coverage
 - **Code Quality**: Linting and static analysis ready
 
 
@@ -89,8 +88,8 @@ The project follows the **Dependency Rule**: source code dependencies only point
 | `GET` | `/api/v1/user` | Get current user profile | Authenticated |
 | `GET` | `/api/v1/user/:id` | Get user by ID | `user:read` |
 | `GET` | `/api/v1/user/list` | List users with filtering | `user:read` |
-| `POST` | `/api/v1/user` | Create new user | `full_access` |
-| `PUT` | `/api/v1/user/:id` | Update user | `full_access` |
+| `POST` | `/api/v1/user` | Create new user | `user_write` |
+| `PUT` | `/api/v1/user/:id` | Update user | `user_update` |
 | `PATCH` | `/api/v1/user/change-email` | Update own email | Authenticated |
 | `PATCH` | `/api/v1/user/change-password` | Update own password | Authenticated |
 | `PATCH` | `/api/v1/user/:id/change-role` | Update user role | `user:change_role` |
