@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
 	"github.com/motixo/goat-api/internal/domain/service"
+	"github.com/motixo/goat-api/internal/pkg"
 )
 
 type RateLimitConfig struct {
@@ -22,10 +23,10 @@ type RateLimit struct {
 
 type RateLimitMiddleware struct {
 	limiter service.RateLimiter
-	logger  service.Logger
+	logger  pkg.Logger
 }
 
-func NewRateLimitMiddleware(limiter service.RateLimiter, logger service.Logger) *RateLimitMiddleware {
+func NewRateLimitMiddleware(limiter service.RateLimiter, logger pkg.Logger) *RateLimitMiddleware {
 	return &RateLimitMiddleware{
 		limiter: limiter,
 		logger:  logger,

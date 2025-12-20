@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/motixo/goat-api/internal/domain/usecase/user"
+	"github.com/motixo/goat-api/internal/usecase/user"
 )
 
 type UseCase interface {

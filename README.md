@@ -3,7 +3,7 @@
 # GOAT API
 
 <p>
-  <a href="#features"><img src="https://img.shields.io/badge/Go-1.21%2B-blue?logo=go" alt="Go Version"></a>
+  <a href="#features"><img src="https://img.shields.io/badge/Go-1.25-blue?logo=go" alt="Go Version"></a>
   <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
   <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
   <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
@@ -15,6 +15,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - 🔐 **Secure authentication** with JWT and refresh tokens
 - ⚡ **High-performance session management** with Redis
 - 🛡️ **Fine-grained permission system** with role-based access control
+- 🚀 **Advanced Rate Limiting** with Sliding Window Log algorithm
 - 📊 **Comprehensive observability** with Prometheus metrics
 - 🧪 **Testable architecture** with dependency injection
 
@@ -28,12 +29,19 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - **Repository Pattern**: Abstract data access with caching layer
 - **Dependency Injection**: Compile-time DI with Google Wire
 
+### Rate Limiting
+The API uses a **Redis Sliding Window** strategy to prevent brute-force attacks and resource abuse. 
+- **Auth Limits**: Tight constraints on login/signup endpoints.
+- **Global Limits**: Configurable per-IP or per-User throttling via middleware.
+- **Atomic Operations**: Powered by Redis Lua scripts to prevent race conditions.
+
+
 ### Authentication & Security
-- **JWT Authentication**: Access tokens (15m) + Refresh tokens (7 days)
-- **Redis Session Management**: Real-time session tracking and revocation
+- **JWT Authentication**: Access tokens + Refresh tokens
+- **Session Management**: Real-time session tracking and revocation through Redis blacklisting and JTI rotation.
 - **Argon2id Password Hashing**: With configurable pepper for enhanced security
 - **ULID Generation**: Lexicographically sortable unique identifiers
-- **Role-Based Access Control (RBAC)**: Fine-grained permissions system
+- **RBAC**: Fine-grained permissions (e.g., `user:read`, `user:delete`) managed via middleware.
 
 ### Performance & Observability
 - **Redis Caching**: Permission and user data caching for reduced database load
@@ -47,29 +55,20 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - **Comprehensive Testing**: Unit tests with 100% domain coverage
 - **Code Quality**: Linting and static analysis ready
 
+
 ## 📐 Architecture
 
-```
-┌─────────────────┐
-│   Delivery      │  Gin HTTP Handlers, Middleware, Routes
-├─────────────────┤
-│   Use Cases     │  Application Business Logic
-├─────────────────┤
-│     Domain      │  Entities, Value Objects, Domain Services
-├─────────────────┤
-│   infra         │  PostgreSQL, Redis, JWT, Logger, Metrics
-└─────────────────┘
-```
+The project follows the **Dependency Rule**: source code dependencies only point inwards.
+- **Domain**: Pure business entities and interfaces (Zero external dependencies).
+- **Use Cases**: Application-specific business rules and orchestrators.
+- **Infrastructure**: Low-level implementations (PostgreSQL, Redis, Zap, Prometheus).
+- **Delivery**: Entry points for the application (Gin HTTP, Middleware).
+- **Pkg**: Shared, domain-agnostic utilities (Logger interfaces, ID generators).
 
-### Key Design Principles
-- **Dependency Rule**: Source code dependencies only point inward
-- **Framework Independence**: Domain layer has zero external dependencies
-- **Testability**: All layers can be unit tested in isolation
-- **Scalability**: Stateless design with external session storage
 
 ## 📋 Prerequisites
 
-- **Go 1.21+**
+- **Go 1.25+**
 - **PostgreSQL 12+**
 - **Redis 6+**
 - **Docker**
@@ -122,30 +121,17 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 ## 🛠️ Development
 
 ### Project Structure
-```
-├── cmd/
-│   └── app/                    # Application entry point
+```text
+├── cmd/app/                # Entry point & Wire DI configuration
 ├── internal/
-│   ├── config/                 # Configuration management
-│   ├── delivery/http/          # HTTP layer (handlers, middleware, routes)
-│   ├── domain/                 # Core business logic
-│   │   ├── entity/            # Domain entities
-│   │   ├── valueobject/       # Value objects (UserRole, UserStatus, etc.)
-│   │   ├── service/           # Domain service interfaces
-│   │   ├── repository/        # Repository interfaces
-│   │   ├── usecase/           # Use cases with business rules
-│   │   └── validation/        # Validation logic
-│   ├── infra/                  # Infrastructure implementations
-│   │   ├── auth/              # JWT and password services
-│   │   ├── cache/             # Redis cache implementations
-│   │   ├── database/postgres/ # PostgreSQL repositories
-│   │   ├── logger/            # Zap logger implementation
-│   │   ├── metrics/           # Prometheus metrics
-│   │   └── storage/redis/     # Redis session storage
-│   └── di/                     # Dependency injection providers
-├── assets/                     # Static assets (mascot, etc.)
-├── Makefile                    # Development automation
-└── go.mod                      # Go module definition
+│   ├── config/             # Environment-based configuration (envconfig)
+│   ├── delivery/http/      # Handlers, Middleware, and Gin Routes
+│   ├── domain/             # Entities, Value Objects, and Repository Interfaces
+│   ├── usecase/            # Application business logic (Auth, User, Permission)
+│   ├── infra/              # Implementation of DB, Redis, and External Services
+│   ├── pkg/                # Cross-cutting concerns (Logger, IDGen, Redis Helpers)
+│   └── di/                 # Google Wire Provider Sets
+└── build/bin/              # Compiled binaries
 ```
 
 ### Quick Start
@@ -178,55 +164,14 @@ make clean          # Clean build artifacts
 make docker-build   # Build Docker image
 make help           # Show all commands
 ```
+### Docker Deployment
 
-## 🔒 Security
-
-### Authentication Flow
-1. **Login**: User provides credentials → receives access + refresh tokens
-2. **Access**: Access token used for API requests (15-minute expiry)
-3. **Refresh**: Refresh token used to obtain new access token (7-day expiry)
-4. **Logout**: Session revoked from Redis, tokens invalidated
-
-### Security Features
-- **Password Security**: Argon2id hashing with configurable time/memory costs
-- **Session Management**: Redis-based sessions with real-time revocation
-- **Input Validation**: Comprehensive validation at HTTP and domain layers
-- **Error Handling**: Generic error messages to prevent information leakage
-- **Rate Limiting**: Built-in (configurable) rate limiting for authentication endpoints
-- **HTTPS Ready**: Production configuration supports TLS termination
-
-### Permission System
-- **Role Hierarchy**: Admin → Operator → Client
-- **Granular Permissions**: Fine-grained control over user operations
-- **Self vs Admin Operations**: Separate permissions for self-modification vs admin operations
-- **Automatic Filtering**: Users can only see data they have permission to access
-
-## 📊 Observability
-
-### Metrics Exposed
-- **HTTP Metrics**: Request duration, active requests, total requests by status
-- **Database Metrics**: Query duration and success rate by operation
-- **Cache Metrics**: Hit/miss ratios for user and permission caches
-- **Business Metrics**: Login attempts, token refreshes, user registrations
-
-### Monitoring Setup
-```yaml
-# prometheus.yml
-scrape_configs:
-  - job_name: 'goat-api'
-    static_configs:
-      - targets: ['localhost:8080']
-    metrics_path: '/metrics'
-```
-
-## 🐳 Docker Deployment
-
-### Build Image
+Build Image
 ```bash
 docker build -t goat-api .
 ```
 
-### Run Container
+Run Container
 ```bash
 docker run -p 8080:8080 \
   --env-file .env \
@@ -234,9 +179,18 @@ docker run -p 8080:8080 \
   goat-api
 ```
 
+## 📊 Observability
+
+- **HTTP Metrics**: Request duration, active requests, total requests by status
+- **Logging**: Structured JSON logging powered by Zap.
+
+
+
 ## Support
 
 If you encounter any issues or have questions:
 
 - **File an issue**: [GitHub Issues](https://github.com/motixo/goat-api/issues)
-- **Documentation**: This README contains comprehensive setup and usage information
+
+
+Released under the MIT License.

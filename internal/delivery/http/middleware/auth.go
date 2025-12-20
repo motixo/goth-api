@@ -8,8 +8,8 @@ import (
 	"github.com/motixo/goat-api/internal/delivery/http/response"
 	DomainError "github.com/motixo/goat-api/internal/domain/errors"
 	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/domain/usecase/session"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
+	"github.com/motixo/goat-api/internal/usecase/session"
 )
 
 type AuthMiddleware struct {

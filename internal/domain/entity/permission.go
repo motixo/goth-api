@@ -7,8 +7,8 @@ import (
 )
 
 type Permission struct {
-	ID        string                 `json:"id" db:"id"`
-	Role      valueobject.UserRole   `json:"role" db:"role"`
-	Action    valueobject.Permission `json:"action" db:"action"`
-	CreatedAt time.Time              `json:"created_at" db:"created_at"`
+	ID        string                 `db:"id"`
+	Role      valueobject.UserRole   `db:"role"`
+	Action    valueobject.Permission `db:"action"`
+	CreatedAt time.Time              `db:"created_at"`
 }

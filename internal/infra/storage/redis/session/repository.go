@@ -9,18 +9,17 @@ import (
 
 	"github.com/motixo/goat-api/internal/domain/entity"
 	"github.com/motixo/goat-api/internal/domain/repository"
-	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/infra/helper"
 	redisClinet "github.com/motixo/goat-api/internal/infra/storage/redis"
+	"github.com/motixo/goat-api/internal/pkg"
 	"github.com/redis/go-redis/v9"
 )
 
 type Repository struct {
 	client *redis.Client
-	logger service.Logger
+	logger pkg.Logger
 }
 
-func NewRepository(client *redis.Client, logger service.Logger) repository.SessionRepository {
+func NewRepository(client *redis.Client, logger pkg.Logger) repository.SessionRepository {
 	return &Repository{
 		client: client,
 		logger: logger,
@@ -31,9 +30,9 @@ func (r *Repository) Create(ctx context.Context, s *entity.Session) error {
 	if s.SessionTTLSeconds <= 0 || s.JTITTLSeconds <= 0 {
 		return fmt.Errorf("TTL values must be positive")
 	}
-	sessionkey := helper.Key("session", "id", s.ID)
-	jtiKey := helper.Key("session", "jti", s.CurrentJTI)
-	userkey := helper.Key("session", "user", s.UserID)
+	sessionkey := pkg.RedisKey("session", "id", s.ID)
+	jtiKey := pkg.RedisKey("session", "jti", s.CurrentJTI)
+	userkey := pkg.RedisKey("session", "user", s.UserID)
 
 	argv := []interface{}{
 		"id", s.ID,
@@ -54,7 +53,7 @@ func (r *Repository) Create(ctx context.Context, s *entity.Session) error {
 }
 
 func (r *Repository) ListByUser(ctx context.Context, userID string, offset, limit int) ([]*entity.Session, int64, error) {
-	userKey := helper.Key("session", "user", userID)
+	userKey := pkg.RedisKey("session", "user", userID)
 	end := int64(offset) + int64(limit) - 1
 
 	sessionKeys, err := r.client.ZRevRange(ctx, userKey, int64(offset), end).Result()
@@ -104,7 +103,7 @@ func (r *Repository) ListByUser(ctx context.Context, userID string, offset, limi
 }
 
 func (r *Repository) ExistsJTI(ctx context.Context, jti string) (bool, error) {
-	jtiKey := helper.Key("session", "jti", jti)
+	jtiKey := pkg.RedisKey("session", "jti", jti)
 	val, err := r.client.Exists(ctx, jtiKey).Result()
 	return val == 1, err
 }
@@ -116,8 +115,8 @@ func (r *Repository) RotateJTI(
 	jtiTTL, sessionTTL int64,
 ) (string, error) {
 
-	oldJTIKey := helper.Key("session", "jti", oldJTI)
-	newJTIKey := helper.Key("session", "jti", newJTI)
+	oldJTIKey := pkg.RedisKey("session", "jti", oldJTI)
+	newJTIKey := pkg.RedisKey("session", "jti", newJTI)
 
 	updatedAt := time.Now().UTC().Unix()
 
@@ -153,7 +152,7 @@ func (r *Repository) Delete(ctx context.Context, sessionIDs []string) error {
 
 	sessionKeys := make([]string, 0, len(sessionIDs))
 	for _, sessionID := range sessionIDs {
-		sessionKeys = append(sessionKeys, helper.Key("session", "id", sessionID))
+		sessionKeys = append(sessionKeys, pkg.RedisKey("session", "id", sessionID))
 	}
 
 	script := redisClinet.GetScript("delete_session")

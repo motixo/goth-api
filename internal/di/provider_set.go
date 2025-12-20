@@ -8,6 +8,7 @@ import (
 
 	"github.com/motixo/goat-api/internal/config"
 	"github.com/motixo/goat-api/internal/cron"
+	"github.com/motixo/goat-api/internal/pkg"
 
 	// Delivery layer
 	"github.com/motixo/goat-api/internal/delivery/http"
@@ -17,10 +18,12 @@ import (
 	// Domain layer
 	domainEvent "github.com/motixo/goat-api/internal/domain/event"
 	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/domain/usecase/auth"
-	"github.com/motixo/goat-api/internal/domain/usecase/permission"
-	"github.com/motixo/goat-api/internal/domain/usecase/session"
-	"github.com/motixo/goat-api/internal/domain/usecase/user"
+
+	// Usecase layer
+	"github.com/motixo/goat-api/internal/usecase/auth"
+	"github.com/motixo/goat-api/internal/usecase/permission"
+	"github.com/motixo/goat-api/internal/usecase/session"
+	"github.com/motixo/goat-api/internal/usecase/user"
 
 	// infra layer
 	authInfra "github.com/motixo/goat-api/internal/infra/auth"
@@ -39,17 +42,10 @@ import (
 
 // infra providers
 var infraSet = wire.NewSet(
-	config.Load,
-	NewZapLogger,
-	wire.Bind(new(service.Logger), new(*logger.ZapLogger)),
-	authInfra.NewPasswordService,
 	postgres.NewDatabase,
 	redis.NewClient,
 	usercache.NewCache,
 	permcache.NewCache,
-	usercache.NewCachedRepository,
-	permcache.NewCachedRepository,
-
 	ProvideConfiguredEventBus,
 	wire.Bind(new(domainEvent.Publisher), new(*event.InMemoryPublisher)),
 )
@@ -59,20 +55,29 @@ var RepositorySet = wire.NewSet(
 	postgresUser.NewRepository,
 	postgresPermission.NewRepository,
 	redisSession.NewRepository,
+	usercache.NewCachedRepository,
+	permcache.NewCachedRepository,
 )
 
 // Service providers
 var ServiceSet = wire.NewSet(
-	service.NewULIDGenerator,
 	NewJWTManager,
 	wire.Bind(new(service.JWTService), new(*authInfra.JWTManager)),
 	metrics.NewPrometheusMetrics,
 	wire.Bind(new(service.MetricsService), new(*metrics.PrometheusMetrics)),
 	ratelimiter.NewRedisRateLimiter,
+	authInfra.NewPasswordService,
+)
+
+// Logger providers
+var LoggerSet = wire.NewSet(
+	logger.NewZapLogger,
+	wire.Bind(new(pkg.Logger), new(*logger.ZapLogger)),
 )
 
 // Configuration providers
 var ConfigSet = wire.NewSet(
+	config.Load,
 	ProvideAccessTTL,
 	ProvideRefreshTTL,
 	ProvideSessionTTL,
@@ -107,16 +112,17 @@ var CronSet = wire.NewSet(
 
 // ProviderSet bundles everything
 var ProviderSet = wire.NewSet(
+	ConfigSet,
+	LoggerSet,
+	ServiceSet,
 	infraSet,
 	RepositorySet,
-	ServiceSet,
-	ConfigSet,
 	UseCaseSet,
 	HTTPSet,
 	CronSet,
 )
 
-// infra providers
+// Token config
 func ProvideAccessTTL(cfg *config.Config) auth.AccessTTL {
 	return auth.AccessTTL(cfg.JWTExpiration)
 }
@@ -150,13 +156,9 @@ func ProvideRateLimit(cfg *config.Config) middleware.RateLimitConfig {
 	}
 }
 
-func NewZapLogger() (*logger.ZapLogger, error) {
-	return logger.NewZapLogger()
-}
-
-// EventBus providers
+// EventBus onfig
 func ProvideConfiguredEventBus(
-	logger service.Logger,
+	logger pkg.Logger,
 	userCacheRepo service.UserCacheService,
 	permCacheRepo service.PermCacheService,
 ) (*event.InMemoryPublisher, error) {

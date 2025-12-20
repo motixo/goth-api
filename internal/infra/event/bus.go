@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/motixo/goat-api/internal/domain/service"
+	"github.com/motixo/goat-api/internal/pkg"
 )
 
 type Handler func(context.Context, any) error
@@ -14,11 +14,11 @@ type Handler func(context.Context, any) error
 type InMemoryPublisher struct {
 	mu       sync.RWMutex
 	handlers map[reflect.Type][]Handler
-	logger   service.Logger
+	logger   pkg.Logger
 	wg       sync.WaitGroup // Track active handlers for graceful shutdown
 }
 
-func NewInMemoryPublisher(logger service.Logger) *InMemoryPublisher {
+func NewInMemoryPublisher(logger pkg.Logger) *InMemoryPublisher {
 	return &InMemoryPublisher{
 		handlers: make(map[reflect.Type][]Handler),
 		logger:   logger,

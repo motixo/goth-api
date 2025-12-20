@@ -6,20 +6,18 @@ import (
 	"time"
 
 	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/infra/helper"
 	redisClinet "github.com/motixo/goat-api/internal/infra/storage/redis"
+	"github.com/motixo/goat-api/internal/pkg"
 	"github.com/redis/go-redis/v9"
 )
 
 type RedisRateLimiter struct {
 	redis *redis.Client
-	ulid  service.ULIDGenerator
 }
 
-func NewRedisRateLimiter(redis *redis.Client, ulid service.ULIDGenerator) service.RateLimiter {
+func NewRedisRateLimiter(redis *redis.Client) service.RateLimiter {
 	return &RedisRateLimiter{
 		redis: redis,
-		ulid:  ulid,
 	}
 }
 
@@ -35,14 +33,14 @@ func (r *RedisRateLimiter) Allow(
 	windowMicro := windowDuration.Microseconds()
 	windowSeconds := int64(windowDuration.Seconds())
 
-	key := helper.Key("rl", actorType, fmt.Sprintf("%s:%s", actorID, resource))
+	key := pkg.RedisKey("rl", actorType, fmt.Sprintf("%s:%s", actorID, resource))
 
 	// If the window is less than 1 second, ensure EXPIRE is at least 1s
 	if windowSeconds == 0 {
 		windowSeconds = 1
 	}
 
-	member := r.ulid.Generate()
+	member := pkg.ULIDGenerator()
 	script := redisClinet.GetScript("rate_limit")
 	result, err := script.Run(ctx, r.redis, []string{key},
 		limit,

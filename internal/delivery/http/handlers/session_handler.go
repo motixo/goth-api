@@ -4,16 +4,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/helper"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
-	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/domain/usecase/session"
+	"github.com/motixo/goat-api/internal/pkg"
+	"github.com/motixo/goat-api/internal/usecase/session"
 )
 
 type SessionHandler struct {
 	usecase session.UseCase
-	logger  service.Logger
+	logger  pkg.Logger
 }
 
-func NewSessionHandler(usecase session.UseCase, logger service.Logger) *SessionHandler {
+func NewSessionHandler(usecase session.UseCase, logger pkg.Logger) *SessionHandler {
 	return &SessionHandler{
 		usecase: usecase,
 		logger:  logger,

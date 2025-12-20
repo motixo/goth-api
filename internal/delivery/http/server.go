@@ -9,10 +9,11 @@ import (
 	"github.com/motixo/goat-api/internal/delivery/http/middleware"
 	"github.com/motixo/goat-api/internal/delivery/http/routes"
 	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/domain/usecase/auth"
-	"github.com/motixo/goat-api/internal/domain/usecase/permission"
-	"github.com/motixo/goat-api/internal/domain/usecase/session"
-	"github.com/motixo/goat-api/internal/domain/usecase/user"
+	"github.com/motixo/goat-api/internal/pkg"
+	"github.com/motixo/goat-api/internal/usecase/auth"
+	"github.com/motixo/goat-api/internal/usecase/permission"
+	"github.com/motixo/goat-api/internal/usecase/session"
+	"github.com/motixo/goat-api/internal/usecase/user"
 )
 
 type Server struct {
@@ -37,7 +38,7 @@ func NewServer(
 	permCache service.PermCacheService,
 	sessionUC session.UseCase,
 	userCache service.UserCacheService,
-	logger service.Logger,
+	logger pkg.Logger,
 	jwtService service.JWTService,
 	metricsService service.MetricsService,
 	rateLimitService service.RateLimiter,

@@ -9,19 +9,19 @@ import (
 	"github.com/motixo/goat-api/internal/domain/errors"
 	"github.com/motixo/goat-api/internal/domain/repository"
 	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/domain/usecase/session"
-	"github.com/motixo/goat-api/internal/domain/usecase/user"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
+	"github.com/motixo/goat-api/internal/pkg"
+	"github.com/motixo/goat-api/internal/usecase/session"
+	"github.com/motixo/goat-api/internal/usecase/user"
 )
 
 type AuthUseCase struct {
 	userRepo       repository.UserRepository
 	sessionUC      session.UseCase
-	ulidGen        service.ULIDGenerator
 	passwordHasher service.PasswordHasher
 	jwtService     service.JWTService
 	userCache      service.UserCacheService
-	logger         service.Logger
+	logger         pkg.Logger
 	accessTTL      time.Duration
 	refreshTTL     time.Duration
 	sessionTTL     time.Duration
@@ -32,9 +32,8 @@ func NewUsecase(
 	sessionUC session.UseCase,
 	passwordHasher service.PasswordHasher,
 	jwtService service.JWTService,
-	ulidGen service.ULIDGenerator,
 	userCache service.UserCacheService,
-	logger service.Logger,
+	logger pkg.Logger,
 	accessTTL AccessTTL,
 	refreshTTL RefreshTTL,
 	sessionTTL SessionTTL,
@@ -47,7 +46,6 @@ func NewUsecase(
 		jwtService:     jwtService,
 		userCache:      userCache,
 		logger:         logger,
-		ulidGen:        ulidGen,
 		accessTTL:      time.Duration(accessTTL),
 		refreshTTL:     time.Duration(refreshTTL),
 		sessionTTL:     time.Duration(sessionTTL),
@@ -110,14 +108,14 @@ func (us *AuthUseCase) Login(ctx context.Context, input LoginInput) (LoginOutput
 		return LoginOutput{}, errors.ErrInvalidCredentials
 	}
 
-	refreshJTI := us.ulidGen.Generate()
+	refreshJTI := pkg.ULIDGenerator()
 	refresh, refreshClaims, err := us.jwtService.GenerateRefreshToken(userEntity.ID, refreshJTI, us.refreshTTL)
 	if err != nil {
 		us.logger.Error("failed to create refresh token", "userID", userEntity.ID, "error", err)
 		return LoginOutput{}, err
 	}
 
-	sessionID := us.ulidGen.Generate()
+	sessionID := pkg.ULIDGenerator()
 	sessionInput := session.CreateInput{
 		ID:         sessionID,
 		UserID:     userEntity.ID,
@@ -198,7 +196,7 @@ func (us *AuthUseCase) Refresh(ctx context.Context, input RefreshInput) (Refresh
 	}
 	us.logger.Debug("refresh token requested", "userID", claims.UserID, "ip", input.IP, "device", input.Device)
 
-	refreshJTI := us.ulidGen.Generate()
+	refreshJTI := pkg.ULIDGenerator()
 	refresh, refreshClaims, err := us.jwtService.GenerateRefreshToken(claims.UserID, refreshJTI, us.refreshTTL)
 	if err != nil {
 		us.logger.Error("failed to create refresh token", "userID", claims.UserID, "error", err)

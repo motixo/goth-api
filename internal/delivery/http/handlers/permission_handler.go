@@ -4,17 +4,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/helper"
 	"github.com/motixo/goat-api/internal/delivery/http/response"
-	"github.com/motixo/goat-api/internal/domain/service"
-	"github.com/motixo/goat-api/internal/domain/usecase/permission"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
+	"github.com/motixo/goat-api/internal/pkg"
+	"github.com/motixo/goat-api/internal/usecase/permission"
 )
 
 type PermissionHandler struct {
 	usecase permission.UseCase
-	logger  service.Logger
+	logger  pkg.Logger
 }
 
-func NewPermissionHandler(usecase permission.UseCase, logger service.Logger) *PermissionHandler {
+func NewPermissionHandler(usecase permission.UseCase, logger pkg.Logger) *PermissionHandler {
 	return &PermissionHandler{
 		usecase: usecase,
 		logger:  logger,

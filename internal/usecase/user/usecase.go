@@ -11,6 +11,7 @@ import (
 	"github.com/motixo/goat-api/internal/domain/repository"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/domain/valueobject"
+	"github.com/motixo/goat-api/internal/pkg"
 )
 
 type UserUseCase struct {
@@ -19,13 +20,13 @@ type UserUseCase struct {
 	userCache      service.UserCacheService
 	sessionRepo    repository.SessionRepository
 	publisher      event.Publisher
-	logger         service.Logger
+	logger         pkg.Logger
 }
 
 func NewUsecase(
 	r repository.UserRepository,
 	passwordHasher service.PasswordHasher,
-	logger service.Logger,
+	logger pkg.Logger,
 	sessionRepo repository.SessionRepository,
 	userCache service.UserCacheService,
 	publisher event.Publisher,

@@ -4,9 +4,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/motixo/goat-api/internal/config"
 	"github.com/motixo/goat-api/internal/domain/service"
+	"github.com/motixo/goat-api/internal/pkg"
 )
 
-func NewDatabase(cfg *config.Config, logger service.Logger, passwordSrv service.PasswordHasher) (*sqlx.DB, error) {
+func NewDatabase(cfg *config.Config, logger pkg.Logger, passwordSrv service.PasswordHasher) (*sqlx.DB, error) {
 	db, err := sqlx.Connect("postgres", cfg.DSN())
 	if err != nil {
 		logger.Error("failed to connect to database", "error", err)

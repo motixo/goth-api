@@ -7,17 +7,17 @@ import (
 	"github.com/motixo/goat-api/internal/domain/entity"
 	"github.com/motixo/goat-api/internal/domain/errors"
 	"github.com/motixo/goat-api/internal/domain/repository"
-	"github.com/motixo/goat-api/internal/domain/service"
+	"github.com/motixo/goat-api/internal/pkg"
 )
 
 type SessionUseCase struct {
 	sessionRepo repository.SessionRepository
-	logger      service.Logger
+	logger      pkg.Logger
 }
 
 func NewUsecase(
 	r repository.SessionRepository,
-	logger service.Logger,
+	logger pkg.Logger,
 ) UseCase {
 	return &SessionUseCase{
 		sessionRepo: r,
@@ -52,7 +52,7 @@ func (us *SessionUseCase) CreateSession(ctx context.Context, input CreateInput) 
 
 }
 
-func (us *SessionUseCase) GetSessionsByUser(ctx context.Context, userID, sessionID string, offset, limit int) ([]*SessionResponse, int64, error) {
+func (us *SessionUseCase) GetSessionsByUser(ctx context.Context, userID, sessionID string, offset, limit int) ([]SessionResponse, int64, error) {
 	us.logger.Debug("retrieving user sessions", "userID", userID, "currentSessionID", sessionID)
 	sessions, total, err := us.sessionRepo.ListByUser(ctx, userID, offset, limit)
 	if err != nil {
@@ -60,9 +60,9 @@ func (us *SessionUseCase) GetSessionsByUser(ctx context.Context, userID, session
 		return nil, 0, err
 	}
 
-	response := make([]*SessionResponse, 0, len(sessions))
+	response := make([]SessionResponse, 0, len(sessions))
 	for _, se := range sessions {
-		r := &SessionResponse{
+		r := SessionResponse{
 			ID:        se.ID,
 			Device:    se.Device,
 			IP:        se.IP,
@@ -74,7 +74,7 @@ func (us *SessionUseCase) GetSessionsByUser(ctx context.Context, userID, session
 		response = append(response, r)
 	}
 
-	us.logger.Info("user sessions retrieved", "userID", userID, "sessionCount", len(sessions))
+	us.logger.Info("user sessions retrieved", "userID", userID, "sessionCount", total)
 	return response, total, nil
 }
 

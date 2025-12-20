@@ -3,7 +3,7 @@ package auth
 import (
 	"time"
 
-	"github.com/motixo/goat-api/internal/domain/usecase/user"
+	"github.com/motixo/goat-api/internal/usecase/user"
 )
 
 type LoginInput struct {

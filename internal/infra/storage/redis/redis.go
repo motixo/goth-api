@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/motixo/goat-api/internal/config"
-	"github.com/motixo/goat-api/internal/domain/service"
+	"github.com/motixo/goat-api/internal/pkg"
 	"github.com/redis/go-redis/v9"
 )
 
-func NewClient(cfg *config.Config, logger service.Logger) (*redis.Client, error) {
+func NewClient(cfg *config.Config, logger pkg.Logger) (*redis.Client, error) {
 	rdb := redis.NewClient(cfg.RedisOptions())
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {

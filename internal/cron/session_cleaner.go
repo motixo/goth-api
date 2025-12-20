@@ -5,16 +5,16 @@ import (
 	"time"
 
 	"github.com/motixo/goat-api/internal/domain/repository"
-	"github.com/motixo/goat-api/internal/domain/service"
+	"github.com/motixo/goat-api/internal/pkg"
 )
 
 type SessionCleaner struct {
 	sessionRepo repository.SessionRepository
 	interval    time.Duration
-	logger      service.Logger
+	logger      pkg.Logger
 }
 
-func NewSessionCleaner(repo repository.SessionRepository, logger service.Logger) *SessionCleaner {
+func NewSessionCleaner(repo repository.SessionRepository, logger pkg.Logger) *SessionCleaner {
 	return &SessionCleaner{
 		sessionRepo: repo,
 		interval:    24 * time.Hour,

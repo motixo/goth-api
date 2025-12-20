@@ -1,7 +1,7 @@
-package helper
+package pkg
 
 import "fmt"
 
-func Key(domain, entity string, identifier any) string {
+func RedisKey(domain, entity string, identifier any) string {
 	return fmt.Sprintf("%s:%s:%v", domain, entity, identifier)
 }

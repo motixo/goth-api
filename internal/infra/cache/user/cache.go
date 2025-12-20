@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/motixo/goat-api/internal/infra/helper"
+	"github.com/motixo/goat-api/internal/pkg"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -22,7 +22,7 @@ func NewCache(rdb *redis.Client) *Cache {
 }
 
 func (c *Cache) Get(ctx context.Context, userID string) (*UserCache, error) {
-	key := helper.Key("user", "id", userID)
+	key := pkg.RedisKey("user", "id", userID)
 	val, err := c.rdb.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return nil, nil // cache miss
@@ -40,7 +40,7 @@ func (c *Cache) Get(ctx context.Context, userID string) (*UserCache, error) {
 }
 
 func (c *Cache) Set(ctx context.Context, userID string, role, status int8) error {
-	key := helper.Key("user", "id", userID)
+	key := pkg.RedisKey("user", "id", userID)
 	data := UserCache{
 		Role:   role,
 		Status: status,
@@ -55,5 +55,5 @@ func (c *Cache) Set(ctx context.Context, userID string, role, status int8) error
 }
 
 func (c *Cache) Delete(ctx context.Context, userID string) error {
-	return c.rdb.Del(ctx, helper.Key("user", "id", userID)).Err()
+	return c.rdb.Del(ctx, pkg.RedisKey("user", "id", userID)).Err()
 }
