@@ -21,7 +21,8 @@ type Config struct {
 	DBName                 string        `envconfig:"DB_NAME" required:"true"`
 	JWTSecret              string        `envconfig:"JWT_SECRET" required:"true"`
 	PasswordPepper         string        `envconfig:"PASSWORD_PEPPER" required:"true"`
-	RedisAddr              string        `envconfig:"REDIS_ADDR" default:"localhost:6379"`
+	RedisHost              string        `envconfig:"REDIS_HOST" default:"localhost"`
+	RedisPort              string        `envconfig:"REDIS_PORT" default:"6379"`
 	RedisPassword          string        `envconfig:"REDIS_PASSWORD"`
 	RedisDB                int           `envconfig:"REDIS_DB" default:"0"`
 	JWTExpiration          time.Duration `envconfig:"JWT_EXPIRATION" default:"15m"`
@@ -31,6 +32,12 @@ type Config struct {
 	Seed                   int           `envconfig:"SEED" default:"1"`
 	AdminEmail             string        `envconfig:"ADMIN_EMAIL" default:"admin@goat.api"`
 	AdminPassword          string        `envconfig:"ADMIN_PASSWORD" default:"Qwerty@123"`
+	RateLimitAuthLimit     int           `envconfig:"RATE_LIMIT_AUTH_LIMIT" default:"5"`
+	RateLimitAuthWindow    time.Duration `envconfig:"RATE_LIMIT_AUTH_WINDOW" default:"1m"`
+	RateLimitPublicLimit   int           `envconfig:"RATE_LIMIT_PUBLIC_LIMIT" default:"100"`
+	RateLimitPublicWindow  time.Duration `envconfig:"RATE_LIMIT_PUBLIC_WINDOW" default:"1m"`
+	RateLimitPrivateLimit  int           `envconfig:"RATE_LIMIT_PRIVATE_LIMIT" default:"60"`
+	RateLimitPrivateWindow time.Duration `envconfig:"RATE_LIMIT_PRIVATE_WINDOW" default:"1m"`
 }
 
 // Load reads configuration from environment variables and .env file
@@ -81,7 +88,7 @@ func (c *Config) DSN() string {
 // RedisOptions returns redis.Options
 func (c *Config) RedisOptions() *redis.Options {
 	return &redis.Options{
-		Addr:     c.RedisAddr,
+		Addr:     c.RedisHost + ":" + c.RedisPort,
 		Password: c.RedisPassword,
 		DB:       c.RedisDB,
 	}

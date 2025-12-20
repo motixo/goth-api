@@ -11,6 +11,7 @@ import (
 	"github.com/motixo/goat-api/internal/domain/repository"
 	"github.com/motixo/goat-api/internal/domain/service"
 	"github.com/motixo/goat-api/internal/infra/helper"
+	redisClinet "github.com/motixo/goat-api/internal/infra/storage/redis"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -47,7 +48,7 @@ func (r *Repository) Create(ctx context.Context, s *entity.Session) error {
 		s.JTITTLSeconds,
 	}
 
-	script := getScript("create_session")
+	script := redisClinet.GetScript("create_session")
 	_, err := script.Run(ctx, r.client, []string{sessionkey, jtiKey, userkey}, argv...).Result()
 	return err
 }
@@ -130,7 +131,7 @@ func (r *Repository) RotateJTI(
 		sessionTTL,
 	}
 
-	script := getScript("rotate_jti")
+	script := redisClinet.GetScript("rotate_jti")
 	res, err := script.Run(ctx, r.client, []string{oldJTIKey, newJTIKey}, argv...).Result()
 	if err != nil {
 		return "", fmt.Errorf("failed to rotate JTI: %w", err)
@@ -155,13 +156,13 @@ func (r *Repository) Delete(ctx context.Context, sessionIDs []string) error {
 		sessionKeys = append(sessionKeys, helper.Key("session", "id", sessionID))
 	}
 
-	script := getScript("delete_session")
+	script := redisClinet.GetScript("delete_session")
 	_, err := script.Run(ctx, r.client, sessionKeys).Result()
 	return err
 }
 
 func (r *Repository) CleanOrphanSessions(ctx context.Context) error {
-	script := getScript("clean_orphans")
+	script := redisClinet.GetScript("clean_orphans")
 
 	iter := r.client.Scan(ctx, 0, "session:user:*", 0).Iterator()
 

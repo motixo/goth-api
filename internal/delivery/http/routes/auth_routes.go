@@ -11,12 +11,14 @@ func RegisterAuthRoutes(
 	authHandler *handlers.AuthHandler,
 	authMiddleware *middleware.AuthMiddleware,
 	permMiddleware *middleware.PermMiddleware,
+	rl *middleware.RateLimitMiddleware,
+	rlConfig middleware.RateLimitConfig,
 ) {
 	public := router.Group("/auth")
 	{
-		public.POST("/login", authHandler.Login)
-		public.POST("/signup", authHandler.Register)
-		public.POST("/refresh", authHandler.Refresh)
+		public.POST("/login", rl.Handler(rlConfig.Auth), authHandler.Login)
+		public.POST("/signup", rl.Handler(rlConfig.Auth), authHandler.Register)
+		public.POST("/refresh", rl.Handler(rlConfig.Private), authHandler.Refresh)
 	}
 
 	private := router.Group("/auth")

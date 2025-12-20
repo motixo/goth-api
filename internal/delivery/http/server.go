@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/motixo/goat-api/internal/delivery/http/handlers"
@@ -17,16 +16,18 @@ import (
 )
 
 type Server struct {
-	engine            *gin.Engine
-	httpServer        *http.Server
-	authHandler       *handlers.AuthHandler
-	userHandler       *handlers.UserHandler
-	sessionHandler    *handlers.SessionHandler
-	permissionHandler *handlers.PermissionHandler
-	authMiddleware    *middleware.AuthMiddleware
-	permMiddleware    *middleware.PermMiddleware
-	metricsMiddleware *middleware.MetricsMiddleware
-	metricsService    service.MetricsService
+	engine              *gin.Engine
+	httpServer          *http.Server
+	authHandler         *handlers.AuthHandler
+	userHandler         *handlers.UserHandler
+	sessionHandler      *handlers.SessionHandler
+	permissionHandler   *handlers.PermissionHandler
+	authMiddleware      *middleware.AuthMiddleware
+	permMiddleware      *middleware.PermMiddleware
+	metricsMiddleware   *middleware.MetricsMiddleware
+	rateLimitMiddleware *middleware.RateLimitMiddleware
+	rlConfig            middleware.RateLimitConfig
+	metricsService      service.MetricsService
 }
 
 func NewServer(
@@ -39,6 +40,8 @@ func NewServer(
 	logger service.Logger,
 	jwtService service.JWTService,
 	metricsService service.MetricsService,
+	rateLimitService service.RateLimiter,
+	rlConfig middleware.RateLimitConfig,
 ) *Server {
 	router := gin.New()
 
@@ -46,6 +49,8 @@ func NewServer(
 	authMiddleware := middleware.NewAuthMiddleware(jwtService, sessionUC, userCache)
 	permMiddleware := middleware.NewPermMiddleware(userUC, permCache, userCache)
 	metricsMiddleware := middleware.NewMetricsMiddleware(metricsService)
+	rateLimitMiddleware := middleware.NewRateLimitMiddleware(rateLimitService, logger)
+
 	router.Use(
 		middleware.Recovery(logger),
 		metricsMiddleware.Handler(),
@@ -57,23 +62,22 @@ func NewServer(
 	permissionHandler := handlers.NewPermissionHandler(permUC, logger)
 
 	httpServerInstance := &http.Server{
-		Handler:      router,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		Handler: router,
 	}
 
 	server := &Server{
-		engine:            router,
-		httpServer:        httpServerInstance,
-		authHandler:       authHandler,
-		userHandler:       userHandler,
-		sessionHandler:    sessionHandler,
-		permissionHandler: permissionHandler,
-		authMiddleware:    authMiddleware,
-		permMiddleware:    permMiddleware,
-		metricsMiddleware: metricsMiddleware,
-		metricsService:    metricsService,
+		engine:              router,
+		httpServer:          httpServerInstance,
+		authHandler:         authHandler,
+		userHandler:         userHandler,
+		sessionHandler:      sessionHandler,
+		permissionHandler:   permissionHandler,
+		authMiddleware:      authMiddleware,
+		permMiddleware:      permMiddleware,
+		metricsMiddleware:   metricsMiddleware,
+		rateLimitMiddleware: rateLimitMiddleware,
+		metricsService:      metricsService,
+		rlConfig:            rlConfig,
 	}
 
 	server.setupRoutes()
@@ -84,14 +88,16 @@ func (s *Server) setupRoutes() {
 	api := s.engine.Group("/api")
 	v1 := api.Group("/v1")
 	routes.RegisterMetricsRoutes(api, s.metricsService)
-	routes.RegisterUserRoutes(v1, s.userHandler, s.sessionHandler, s.authMiddleware, s.permMiddleware)
-	routes.RegisterAuthRoutes(v1, s.authHandler, s.authMiddleware, s.permMiddleware)
-	routes.RegisterPermissionRoutes(v1, s.permissionHandler, s.authMiddleware, s.permMiddleware)
+	routes.RegisterUserRoutes(v1, s.userHandler, s.sessionHandler, s.authMiddleware, s.permMiddleware, s.rateLimitMiddleware, s.rlConfig)
+	routes.RegisterAuthRoutes(v1, s.authHandler, s.authMiddleware, s.permMiddleware, s.rateLimitMiddleware, s.rlConfig)
+	routes.RegisterPermissionRoutes(v1, s.permissionHandler, s.authMiddleware, s.permMiddleware, s.rateLimitMiddleware, s.rlConfig)
 
 	// Health check
-	api.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok"})
-	})
+	api.GET(
+		"/health",
+		s.rateLimitMiddleware.Handler(s.rlConfig.Public),
+		func(c *gin.Context) { c.JSON(200, gin.H{"status": "ok"}) },
+	)
 }
 
 func (s *Server) Run(addr string) error {

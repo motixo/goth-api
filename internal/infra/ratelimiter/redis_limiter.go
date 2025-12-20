@@ -1,0 +1,65 @@
+package ratelimiter
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/motixo/goat-api/internal/domain/service"
+	"github.com/motixo/goat-api/internal/infra/helper"
+	redisClinet "github.com/motixo/goat-api/internal/infra/storage/redis"
+	"github.com/redis/go-redis/v9"
+)
+
+type RedisRateLimiter struct {
+	redis *redis.Client
+	ulid  service.ULIDGenerator
+}
+
+func NewRedisRateLimiter(redis *redis.Client, ulid service.ULIDGenerator) service.RateLimiter {
+	return &RedisRateLimiter{
+		redis: redis,
+		ulid:  ulid,
+	}
+}
+
+func (r *RedisRateLimiter) Allow(
+	ctx context.Context,
+	actorType string,
+	actorID string,
+	resource string,
+	limit int,
+	windowDuration time.Duration,
+) (bool, time.Duration, int64, error) {
+	nowMicro := time.Now().UTC().UnixMicro()
+	windowMicro := windowDuration.Microseconds()
+	windowSeconds := int64(windowDuration.Seconds())
+
+	key := helper.Key("rl", actorType, fmt.Sprintf("%s:%s", actorID, resource))
+
+	// If the window is less than 1 second, ensure EXPIRE is at least 1s
+	if windowSeconds == 0 {
+		windowSeconds = 1
+	}
+
+	member := r.ulid.Generate()
+	script := redisClinet.GetScript("rate_limit")
+	result, err := script.Run(ctx, r.redis, []string{key},
+		limit,
+		windowMicro,
+		nowMicro,
+		member,
+		windowSeconds,
+	).Result()
+
+	if err != nil {
+		return false, 0, 0, err
+	}
+
+	res := result.([]interface{})
+	allowed := res[0].(int64) == 1
+	retryAfterMicro := res[1].(int64)
+	currentCount := res[2].(int64)
+
+	return allowed, time.Duration(retryAfterMicro) * time.Microsecond, currentCount, nil
+}

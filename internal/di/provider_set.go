@@ -3,13 +3,13 @@ package di
 import (
 	"context"
 	"reflect"
-	"time"
 
 	"github.com/google/wire"
-	"github.com/redis/go-redis/v9"
 
 	"github.com/motixo/goat-api/internal/config"
 	"github.com/motixo/goat-api/internal/cron"
+
+	// Delivery layer
 	"github.com/motixo/goat-api/internal/delivery/http"
 	"github.com/motixo/goat-api/internal/delivery/http/handlers"
 	"github.com/motixo/goat-api/internal/delivery/http/middleware"
@@ -32,19 +32,21 @@ import (
 	"github.com/motixo/goat-api/internal/infra/event"
 	"github.com/motixo/goat-api/internal/infra/logger"
 	"github.com/motixo/goat-api/internal/infra/metrics"
+	"github.com/motixo/goat-api/internal/infra/ratelimiter"
+	"github.com/motixo/goat-api/internal/infra/storage/redis"
 	redisSession "github.com/motixo/goat-api/internal/infra/storage/redis/session"
 )
 
 // infra providers
 var infraSet = wire.NewSet(
 	config.Load,
-	ProvideRedisClient,
 	NewZapLogger,
 	wire.Bind(new(service.Logger), new(*logger.ZapLogger)),
 	authInfra.NewPasswordService,
 	postgres.NewDatabase,
-	NewUserCache,
-	NewPermissionCache,
+	redis.NewClient,
+	usercache.NewCache,
+	permcache.NewCache,
 	usercache.NewCachedRepository,
 	permcache.NewCachedRepository,
 
@@ -66,6 +68,7 @@ var ServiceSet = wire.NewSet(
 	wire.Bind(new(service.JWTService), new(*authInfra.JWTManager)),
 	metrics.NewPrometheusMetrics,
 	wire.Bind(new(service.MetricsService), new(*metrics.PrometheusMetrics)),
+	ratelimiter.NewRedisRateLimiter,
 )
 
 // Configuration providers
@@ -73,6 +76,7 @@ var ConfigSet = wire.NewSet(
 	ProvideAccessTTL,
 	ProvideRefreshTTL,
 	ProvideSessionTTL,
+	ProvideRateLimit,
 )
 
 // UseCase provider
@@ -92,9 +96,11 @@ var HTTPSet = wire.NewSet(
 	middleware.NewAuthMiddleware,
 	middleware.NewPermMiddleware,
 	middleware.NewMetricsMiddleware,
+	middleware.NewRateLimitMiddleware,
 	http.NewServer,
 )
 
+// Cron providers
 var CronSet = wire.NewSet(
 	cron.NewSessionCleaner,
 )
@@ -111,14 +117,6 @@ var ProviderSet = wire.NewSet(
 )
 
 // infra providers
-func ProvideRedisClient(cfg *config.Config) *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr:     cfg.RedisAddr,
-		Password: cfg.RedisPassword,
-		DB:       cfg.RedisDB,
-	})
-}
-
 func ProvideAccessTTL(cfg *config.Config) auth.AccessTTL {
 	return auth.AccessTTL(cfg.JWTExpiration)
 }
@@ -135,18 +133,28 @@ func NewJWTManager(cfg *config.Config) *authInfra.JWTManager {
 	return authInfra.NewJWTManager(cfg.JWTSecret)
 }
 
+func ProvideRateLimit(cfg *config.Config) middleware.RateLimitConfig {
+	return middleware.RateLimitConfig{
+		Auth: middleware.RateLimit{
+			Limit:  cfg.RateLimitAuthLimit,
+			Window: cfg.RateLimitAuthWindow,
+		},
+		Public: middleware.RateLimit{
+			Limit:  cfg.RateLimitPublicLimit,
+			Window: cfg.RateLimitPublicWindow,
+		},
+		Private: middleware.RateLimit{
+			Limit:  cfg.RateLimitPrivateLimit,
+			Window: cfg.RateLimitPrivateWindow,
+		},
+	}
+}
+
 func NewZapLogger() (*logger.ZapLogger, error) {
 	return logger.NewZapLogger()
 }
 
-func NewUserCache(redisClient *redis.Client) *usercache.Cache {
-	return usercache.NewCache(redisClient, 24*time.Hour)
-}
-
-func NewPermissionCache(redisClient *redis.Client) *permcache.Cache {
-	return permcache.NewCache(redisClient, 24*time.Hour)
-}
-
+// EventBus providers
 func ProvideConfiguredEventBus(
 	logger service.Logger,
 	userCacheRepo service.UserCacheService,

@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"github.com/motixo/goat-api/internal/config"
 	"github.com/motixo/goat-api/internal/domain/service"
 )

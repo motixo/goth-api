@@ -1,4 +1,4 @@
-package session
+package redis
 
 import (
 	"embed"
@@ -53,7 +53,7 @@ func getScripts() map[string]*redis.Script {
 	return scripts
 }
 
-func getScript(name string) *redis.Script {
+func GetScript(name string) *redis.Script {
 	scripts := getScripts()
 	if script, exists := scripts[name]; exists {
 		return script

@@ -6,14 +6,15 @@ import (
 )
 
 var (
-	ErrInternal     = errors.New("internal server error")
-	ErrBadRequest   = errors.New("bad request")
-	ErrUnauthorized = errors.New("unauthorized")
-	ErrTokenExpired = errors.New("token expired")
-	ErrForbidden    = errors.New("forbidden")
-	ErrNotFound     = errors.New("not found")
-	ErrConflict     = errors.New("conflict")
-	ErrInvalidInput = errors.New("invalid input")
+	ErrInternal          = errors.New("internal server error")
+	ErrBadRequest        = errors.New("bad request")
+	ErrUnauthorized      = errors.New("unauthorized")
+	ErrTokenExpired      = errors.New("token expired")
+	ErrForbidden         = errors.New("forbidden")
+	ErrNotFound          = errors.New("not found")
+	ErrConflict          = errors.New("conflict")
+	ErrInvalidInput      = errors.New("invalid input")
+	ErrRateLimitExceeded = errors.New("rate limit exceeded")
 )
 
 func HTTPStatus(err error) int {
@@ -26,6 +27,8 @@ func HTTPStatus(err error) int {
 		return http.StatusNotFound
 	case ErrConflict, ErrEmailAlreadyExists, ErrPasswordSameAsCurrent:
 		return http.StatusConflict
+	case ErrRateLimitExceeded:
+		return http.StatusTooManyRequests
 
 	case ErrBadRequest,
 		ErrPasswordTooShort,

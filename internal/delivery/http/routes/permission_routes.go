@@ -12,10 +12,13 @@ func RegisterPermissionRoutes(
 	permissionHandler *handlers.PermissionHandler,
 	authMiddleware *middleware.AuthMiddleware,
 	permMiddleware *middleware.PermMiddleware,
+	rl *middleware.RateLimitMiddleware,
+	rlConfig middleware.RateLimitConfig,
 ) {
 	private := router.Group("/permission")
 	private.Use(authMiddleware.Required())
 	private.Use(permMiddleware.Require(valueobject.PermFullAccess))
+	private.Use(rl.Handler(rlConfig.Private))
 	{
 		private.GET("/",
 			permissionHandler.GetPermissions)

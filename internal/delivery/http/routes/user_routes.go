@@ -13,12 +13,15 @@ func RegisterUserRoutes(
 	sessionHandler *handlers.SessionHandler,
 	authMiddleware *middleware.AuthMiddleware,
 	permMiddleware *middleware.PermMiddleware,
+	rl *middleware.RateLimitMiddleware,
+	rlConfig middleware.RateLimitConfig,
 ) {
 
 	private := router.Group("/user")
 	private.Use(authMiddleware.Required())
-	{
 
+	private.Use(rl.Handler(rlConfig.Private))
+	{
 		private.POST("/",
 			permMiddleware.Require(valueobject.PermFullAccess),
 			userHandler.CreateUser,

@@ -14,6 +14,7 @@ type Problem struct {
 	Status   int    `json:"status"`
 	Detail   string `json:"detail,omitempty"`
 	Instance string `json:"instance,omitempty"`
+	Metadata any    `json:"metadata,omitempty"`
 }
 
 // Success
@@ -29,13 +30,14 @@ func NoContent(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func respondWithProblem(c *gin.Context, status int, title, detail, typ string) {
+func respondWithProblem(c *gin.Context, status int, title, detail, typ string, metadata any) {
 	c.AbortWithStatusJSON(status, Problem{
 		Type:     typ,
 		Title:    title,
 		Status:   status,
 		Detail:   detail,
 		Instance: c.Request.URL.Path,
+		Metadata: metadata,
 	})
 }
 
@@ -94,29 +96,33 @@ func DomainError(c *gin.Context, err error) {
 	title := http.StatusText(status)
 
 	if status == http.StatusInternalServerError {
-		respondWithProblem(c, status, "Internal Server Error", "An unexpected error occurred.", "/errors/internal")
+		respondWithProblem(c, status, "Internal Server Error", "An unexpected error occurred.", "/errors/internal", nil)
 		return
 	}
 
-	respondWithProblem(c, status, title, clientMessage(err), problemType(err))
+	respondWithProblem(c, status, title, clientMessage(err), problemType(err), nil)
 }
 
 func BadRequest(c *gin.Context, detail string) {
-	respondWithProblem(c, http.StatusBadRequest, "Bad Request", detail, "/errors/validation")
+	respondWithProblem(c, http.StatusBadRequest, "Bad Request", detail, "/errors/validation", nil)
 }
 
 func Unauthorized(c *gin.Context, detail string) {
-	respondWithProblem(c, http.StatusUnauthorized, "Unauthorized", detail, "/errors/unauthorized")
+	respondWithProblem(c, http.StatusUnauthorized, "Unauthorized", detail, "/errors/unauthorized", nil)
 }
 
 func NotFound(c *gin.Context) {
-	respondWithProblem(c, http.StatusNotFound, "Not Found", "The requested resource was not found.", "/errors/not-found")
+	respondWithProblem(c, http.StatusNotFound, "Not Found", "The requested resource was not found.", "/errors/not-found", nil)
 }
 
 func Internal(c *gin.Context) {
-	respondWithProblem(c, http.StatusInternalServerError, "Internal Server Error", "An unexpected error occurred.", "/errors/internal")
+	respondWithProblem(c, http.StatusInternalServerError, "Internal Server Error", "An unexpected error occurred.", "/errors/internal", nil)
 }
 
 func Forbidden(c *gin.Context, detail string) {
-	respondWithProblem(c, http.StatusForbidden, "Forbidden", detail, "/errors/forbidden")
+	respondWithProblem(c, http.StatusForbidden, "Forbidden", detail, "/errors/forbidden", nil)
+}
+
+func TooManyRequests(c *gin.Context, detail string, metadata any) {
+	respondWithProblem(c, http.StatusTooManyRequests, "Too Many Requests", detail, "/errors/rate-limit", metadata)
 }

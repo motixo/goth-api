@@ -17,7 +17,7 @@ import (
 type AuthUseCase struct {
 	userRepo       repository.UserRepository
 	sessionUC      session.UseCase
-	ulidGen        service.IDGenerator
+	ulidGen        service.ULIDGenerator
 	passwordHasher service.PasswordHasher
 	jwtService     service.JWTService
 	userCache      service.UserCacheService
@@ -32,7 +32,7 @@ func NewUsecase(
 	sessionUC session.UseCase,
 	passwordHasher service.PasswordHasher,
 	jwtService service.JWTService,
-	ulidGen service.IDGenerator,
+	ulidGen service.ULIDGenerator,
 	userCache service.UserCacheService,
 	logger service.Logger,
 	accessTTL AccessTTL,

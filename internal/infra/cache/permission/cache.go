@@ -16,8 +16,11 @@ type Cache struct {
 	ttl time.Duration
 }
 
-func NewCache(rdb *redis.Client, ttl time.Duration) *Cache {
-	return &Cache{rdb: rdb, ttl: ttl}
+func NewCache(rdb *redis.Client) *Cache {
+	return &Cache{
+		rdb: rdb,
+		ttl: 24 * time.Hour,
+	}
 }
 
 func (c *Cache) Get(ctx context.Context, roleID int8) ([]*entity.Permission, error) {

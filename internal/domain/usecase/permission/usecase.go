@@ -14,14 +14,14 @@ import (
 
 type PermissionUseCase struct {
 	permissionRepo repository.PermissionRepository
-	ulidGen        service.IDGenerator
+	ulidGen        service.ULIDGenerator
 	publisher      event.Publisher
 	logger         service.Logger
 }
 
 func NewUsecase(
 	p repository.PermissionRepository,
-	ulidGen service.IDGenerator,
+	ulidGen service.ULIDGenerator,
 	publisher event.Publisher,
 	logger service.Logger,
 ) UseCase {

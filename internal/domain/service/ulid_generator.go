@@ -7,17 +7,17 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-type IDGenerator interface {
+type ULIDGenerator interface {
 	Generate() string
 }
 
-type ULIDGenerator struct {
+type ulidGenerator struct {
 }
 
-func NewULIDGenerator() IDGenerator {
-	return &ULIDGenerator{}
+func NewULIDGenerator() ULIDGenerator {
+	return &ulidGenerator{}
 }
 
-func (u *ULIDGenerator) Generate() string {
+func (u *ulidGenerator) Generate() string {
 	return ulid.MustNew(ulid.Timestamp(time.Now().UTC()), rand.Reader).String()
 }
