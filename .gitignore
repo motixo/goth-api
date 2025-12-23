@@ -12,3 +12,6 @@ cmd/app/wire_gen.go
 
 # Build file
 build
+
+# Nix
+flake.lock
