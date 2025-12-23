@@ -14,7 +14,5 @@ cmd/app/wire_gen.go
 build
 
 # Nix
-flake.lock
 .devenv
 .devenv.flake.nix
-devenv.lock
