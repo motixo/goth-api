@@ -11,7 +11,7 @@
   packages = with pkgs; [
     gnumake
     gcc
-    google-wire
+    wire
     golangci-lint
     postgresql_16
     redis
@@ -22,12 +22,12 @@
     package = pkgs.postgresql_16;
 
     # Matches your .env DB_NAME
-    initialDatabases = [{ name = "goth"; }];
+    initialDatabases = [{ name = "goat"; }];
 
     # Matches your .env DB_USER and DB_PASSWORD
     initialScript = ''
       CREATE USER postgres WITH SUPERUSER PASSWORD 'postgres';
-      ALTER DATABASE goth OWNER TO postgres;
+      ALTER DATABASE goat OWNER TO postgres;
     '';
 
     listen_addresses = "127.0.0.1";
@@ -47,7 +47,7 @@
   enterShell = ''
     echo "GOAT API Development Environment Loaded!"
     echo "-----------------------------------------"
-    echo "DATABASE: postgres://postgres:postgres@localhost:5432/goth"
+    echo "DATABASE: localhost:5432"
     echo "REDIS:    localhost:6379"
     echo "GO:       $(go version)"
     echo "-----------------------------------------"

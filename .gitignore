@@ -1,11 +1,11 @@
 # Go packages
 go.sum
 
-# Environment config file
-.env
-
 # vscode configurations
 .vscode
+
+# Environment config file
+.env
 
 # Wire generated DI container
 cmd/app/wire_gen.go
@@ -15,3 +15,6 @@ build
 
 # Nix
 flake.lock
+.devenv
+.devenv.flake.nix
+devenv.lock
