@@ -2,14 +2,6 @@
 
 # GOAT API
 
-<p>
-  <a href="#features"><img src="https://img.shields.io/badge/Go-1.25-blue?logo=go" alt="Go Version"></a>
-  <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
-  <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
-  <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
-  <a href="https://github.com/motixo/goat-api/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-purple" alt="License"></a>
-</p>
-
 GOAT API is a **production-ready**, **secure**, and **scalable** backend application built with Go, following Clean Architecture principles. It provides a robust foundation for modern web applications with:
 
 - 🔐 **Secure authentication** with JWT and refresh tokens
@@ -18,6 +10,14 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - ✋ **Advanced Rate Limiting** with Sliding Window Log algorithm
 - 📊 **Comprehensive observability** with Prometheus metrics
 - 🧪 **Testable architecture** with dependency injection
+
+<p>
+  <a href="#features"><img src="https://img.shields.io/badge/Go-1.25-blue?logo=go" alt="Go Version"></a>
+  <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
+  <a href="#architecture"><img src="https://img.shields.io/badge/architecture-Clean%20Architecture-orange" alt="Architecture"></a>
+  <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
+  <a href="https://github.com/motixo/goat-api/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-purple" alt="License"></a>
+</p>
 
 <br clear="right" />
 
