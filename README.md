@@ -11,6 +11,7 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
 - 📊 **Comprehensive observability** with Prometheus metrics
 - 🧪 **Testable architecture** with dependency injection
 
+<br clear="right" />
 <p>
   <a href="#features"><img src="https://img.shields.io/badge/Go-1.25-blue?logo=go" alt="Go Version"></a>
   <a href="#security"><img src="https://img.shields.io/badge/security-JWT%20%2B%20Redis-green" alt="Security"></a>
@@ -18,8 +19,6 @@ GOAT API is a **production-ready**, **secure**, and **scalable** backend applica
   <a href="#observability"><img src="https://img.shields.io/badge/observability-Prometheus%20%2B%20Grafana-blue" alt="Observability"></a>
   <a href="https://github.com/motixo/goat-api/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-purple" alt="License"></a>
 </p>
-
-<br clear="right" />
 
 ## ✨ Features
 
